@@ -4,12 +4,34 @@
 
 Graphics::Graphics()
 {
-
+	m_swapChain = nullptr;
+	m_device = nullptr;
+	m_deviceContext = nullptr;
+	m_renderTargetView = nullptr;
 }
 
 Graphics::~Graphics()
 {
+	DeInit();
+}
 
+void Graphics::DeInit()
+{
+	if (m_renderTargetView) {
+		m_renderTargetView->Release();
+	}
+
+	if (m_swapChain) {
+		m_swapChain->Release();
+	}
+
+	if (m_deviceContext) {
+		m_deviceContext->Release();
+	}
+
+	if (m_device) {
+		m_device->Release();
+	}
 }
 
 bool Graphics::Init(HWND hwnd, int width, int height)

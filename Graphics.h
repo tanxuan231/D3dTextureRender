@@ -8,6 +8,7 @@ public:
 	Graphics();
 	~Graphics();
 
+	void DeInit();
 	bool Init(HWND hwnd, int width, int height);
 	bool CreateDeviceAndSwapChain(HWND hwnd, int width, int height);
 	bool CreateRenderTargetView();

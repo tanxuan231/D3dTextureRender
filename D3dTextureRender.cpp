@@ -72,7 +72,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             }
         }
     }
-
+    
+    delete graphics;
     return (int) msg.wParam;
 }
 
