@@ -20,11 +20,7 @@ Graphics::~Graphics()
 
 void Graphics::DeInit()
 {
-	if (m_colorShader) {
-		m_colorShader->DeInit();
-		delete m_colorShader;
-		m_colorShader = nullptr;
-	}
+	DeInitColorShader();
 
 	if (m_renderTargetView) {
 		m_renderTargetView->Release();
@@ -51,6 +47,21 @@ bool Graphics::Init(HWND hwnd, int width, int height)
 	JUDGER(InitColorShader());
 
 	return true;
+}
+
+void Graphics::DeInitColorShader()
+{
+	if (m_colorShader) {
+		m_colorShader->DeInit();
+		delete m_colorShader;
+		m_colorShader = nullptr;
+	}
+}
+
+bool Graphics::InitColorShader()
+{
+	m_colorShader = new ColorShader();
+	return m_colorShader->Init(m_device, m_deviceContext, L"shader/Color.vs", L"shader/Color.ps");
 }
 
 bool Graphics::CreateDeviceAndSwapChain(HWND hwnd, int width, int height)
@@ -144,12 +155,6 @@ void Graphics::SetViewports(int width, int height)
 	m_deviceContext->RSSetViewports(1, &viewport);
 }
 
-bool Graphics::InitColorShader()
-{
-	m_colorShader = new ColorShader();
-	return m_colorShader->Init(m_device, L"shader/Color.vs", L"shader/Color.ps");
-}
-
 void Graphics::BeginScene(float red, float green, float blue, float alpha)
 {
 	float color[4];
@@ -171,4 +176,10 @@ void Graphics::EndScene()
 	m_swapChain->Present(0, 0);	
 
 	return;
+}
+
+bool Graphics::Render()
+{
+	m_colorShader->Render(m_deviceContext);
+	return true;
 }

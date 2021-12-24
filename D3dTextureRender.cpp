@@ -80,7 +80,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 bool RenderFrame(Graphics* graphics)
 {
-    graphics->BeginScene(1.0f, 0.0f, 0.0f, 1.0f);
+    graphics->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+    graphics->Render();
     graphics->EndScene();
 
     return true;

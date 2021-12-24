@@ -11,13 +11,19 @@ public:
 
 	void DeInit();
 	bool Init(HWND hwnd, int width, int height);
+
+	void BeginScene(float red, float green, float blue, float alpha);
+	void EndScene();
+
+	bool Render();
+
+private:
+	void DeInitColorShader();
+
 	bool CreateDeviceAndSwapChain(HWND hwnd, int width, int height);
 	bool CreateRenderTargetView();
 	void SetViewports(int width, int height);
 	bool InitColorShader();
-
-	void BeginScene(float red, float green, float blue, float alpha);
-	void EndScene();
 
 private:
 	ColorShader* m_colorShader;
