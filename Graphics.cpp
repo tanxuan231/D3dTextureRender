@@ -1,9 +1,12 @@
 #include "Graphics.h"
+#include "Common.h"
 
 #pragma comment(lib, "d3d11.lib")
 
 Graphics::Graphics()
 {
+	m_colorShader = nullptr;
+
 	m_swapChain = nullptr;
 	m_device = nullptr;
 	m_deviceContext = nullptr;
@@ -17,6 +20,12 @@ Graphics::~Graphics()
 
 void Graphics::DeInit()
 {
+	if (m_colorShader) {
+		m_colorShader->DeInit();
+		delete m_colorShader;
+		m_colorShader = nullptr;
+	}
+
 	if (m_renderTargetView) {
 		m_renderTargetView->Release();
 	}
@@ -36,11 +45,12 @@ void Graphics::DeInit()
 
 bool Graphics::Init(HWND hwnd, int width, int height)
 {
-	bool result = CreateDeviceAndSwapChain(hwnd, width, height);
-	result &= CreateRenderTargetView();
+	JUDGER(CreateDeviceAndSwapChain(hwnd, width, height));	
+	JUDGER(CreateRenderTargetView());	
 	SetViewports(width, height);
+	JUDGER(InitColorShader());
 
-	return result;
+	return true;
 }
 
 bool Graphics::CreateDeviceAndSwapChain(HWND hwnd, int width, int height)
@@ -132,6 +142,12 @@ void Graphics::SetViewports(int width, int height)
 	viewport.TopLeftY = 0.0f;
 
 	m_deviceContext->RSSetViewports(1, &viewport);
+}
+
+bool Graphics::InitColorShader()
+{
+	m_colorShader = new ColorShader();
+	return m_colorShader->Init(m_device, L"shader/Color.vs", L"shader/Color.ps");
 }
 
 void Graphics::BeginScene(float red, float green, float blue, float alpha)

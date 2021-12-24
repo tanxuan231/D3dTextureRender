@@ -44,6 +44,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     Graphics* graphics = new Graphics();
 
     if (!graphics->Init(g_hWnd, 800, 600)) {
+        MessageBox(g_hWnd, L"Error Graphics Init.", L"Error Graphics Init.", MB_OK);
         return FALSE;
     }
 

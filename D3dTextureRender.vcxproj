@@ -139,15 +139,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ColorShader.h" />
+    <ClInclude Include="Common.h" />
     <ClInclude Include="D3dTextureRender.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="ShaderHelp.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ColorShader.cpp" />
     <ClCompile Include="D3dTextureRender.cpp" />
     <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="ShaderHelp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="D3dTextureRender.rc" />
@@ -155,6 +160,18 @@
   <ItemGroup>
     <Image Include="D3dTextureRender.ico" />
     <Image Include="small.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shader\Color.ps">
+      <FileType>Document</FileType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ColorPsMain</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shader\Color.vs">
+      <FileType>Document</FileType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ColorVsMain</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
