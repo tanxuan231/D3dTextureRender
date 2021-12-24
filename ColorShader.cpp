@@ -73,7 +73,7 @@ bool ColorShader::CompileShader(const WCHAR* vsFilename, const WCHAR* psFilename
 		"ps_5_0",
 		D3D10_SHADER_ENABLE_STRICTNESS,
 		0,
-		&m_vertexShaderBuffer, &errorMessage);
+		&m_pixelShaderBuffer, &errorMessage);
 	if (FAILED(hr)) {
 		ErrorMessage(errorMessage, 0, psFilename);
 		return false;
@@ -101,11 +101,6 @@ bool ColorShader::CreateShader(ID3D11Device* device)
 		return false;
 	}
 
-	m_vertexShaderBuffer->Release();
-	m_vertexShaderBuffer = nullptr;
-	m_pixelShaderBuffer->Release();
-	m_pixelShaderBuffer = nullptr;
-
 	return true;
 }
 
@@ -127,6 +122,11 @@ bool ColorShader::CreateInputLayout(ID3D11Device* device)
 	if (FAILED(hr)) {
 		return false;
 	}
+
+	m_vertexShaderBuffer->Release();
+	m_vertexShaderBuffer = nullptr;
+	m_pixelShaderBuffer->Release();
+	m_pixelShaderBuffer = nullptr;
 
 	return true;
 }
