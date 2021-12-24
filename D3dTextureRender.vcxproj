@@ -141,11 +141,13 @@
   <ItemGroup>
     <ClInclude Include="D3dTextureRender.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="Graphics.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="D3dTextureRender.cpp" />
+    <ClCompile Include="Graphics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="D3dTextureRender.rc" />

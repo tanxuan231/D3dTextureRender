@@ -3,6 +3,7 @@
 
 #include "framework.h"
 #include "D3dTextureRender.h"
+#include "Graphics.h"
 
 #define MAX_LOADSTRING 100
 
@@ -10,12 +11,14 @@
 HINSTANCE hInst;                                // 当前实例
 WCHAR szTitle[MAX_LOADSTRING];                  // 标题栏文本
 WCHAR szWindowClass[MAX_LOADSTRING];            // 主窗口类名
+HWND g_hWnd;
 
 // 此代码模块中包含的函数的前向声明:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+bool RenderFrame(Graphics*);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -24,8 +27,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
-
-    // TODO: 在此处放置代码。
 
     // 初始化全局字符串
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -40,22 +41,48 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_D3DTEXTURERENDER));
 
+    Graphics* graphics = new Graphics();
+
+    if (!graphics->Init(g_hWnd, 800, 600)) {
+        return FALSE;
+    }
+
     MSG msg;
+    bool done = false;
+    bool result = true;
 
     // 主消息循环:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+    while (!done) {   
+        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+        }
+
+        if (msg.message == WM_QUIT) {
+            done = true;
+        } else {
+            // 渲染一帧
+            result = RenderFrame(graphics);
+            if (!result) {
+                done = true;
+            }
         }
     }
 
     return (int) msg.wParam;
 }
 
+bool RenderFrame(Graphics* graphics)
+{
+    graphics->BeginScene(1.0f, 0.0f, 0.0f, 1.0f);
+    graphics->EndScene();
 
+    return true;
+}
 
 //
 //  函数: MyRegisterClass()
@@ -105,6 +132,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       return FALSE;
    }
 
+   g_hWnd = hWnd;
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 
