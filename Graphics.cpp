@@ -5,7 +5,7 @@
 
 Graphics::Graphics()
 {
-	m_colorShader = nullptr;
+	m_shader = nullptr;
 
 	m_swapChain = nullptr;
 	m_device = nullptr;
@@ -56,7 +56,7 @@ bool Graphics::Init(HWND hwnd, int width, int height)
 	JUDGER(CreateDeviceAndSwapChain(hwnd, width, height));	
 	JUDGER(CreateRenderTargetView());	
 	SetViewports(width, height);
-	JUDGER(InitColorShader());
+	JUDGER(InitShader());
 
 	// DXGI×¥Í¼³õÊ¼»¯
 	JUDGER(m_dxgiDupMgr.Init(m_device, m_dxgiAdapter));
@@ -66,18 +66,18 @@ bool Graphics::Init(HWND hwnd, int width, int height)
 
 void Graphics::DeInitColorShader()
 {
-	if (m_colorShader) {
-		m_colorShader->DeInit();
-		delete m_colorShader;
-		m_colorShader = nullptr;
+	if (m_shader) {
+		m_shader->DeInit();
+		delete m_shader;
+		m_shader = nullptr;
 	}
 }
 
-bool Graphics::InitColorShader()
+bool Graphics::InitShader()
 {
-	m_colorShader = new TextureShader();
-	m_colorShader->SetTextureDataFile("data/stone.tga");
-	return m_colorShader->Init(m_device, m_deviceContext, L"shader/Texture.vs", L"shader/Texture.ps");
+	m_shader = new TextureShader();
+	m_shader->SetTextureDataFile("data/stone.tga");
+	return m_shader->Init(m_device, m_deviceContext, L"shader/Texture.vs", L"shader/Texture.ps");
 }
 
 bool Graphics::CreateDeviceAndSwapChain(HWND hwnd, int width, int height)
@@ -224,6 +224,6 @@ bool Graphics::Render()
 {
 	m_deviceContext->OMSetRenderTargets(1u, &m_renderTargetView, nullptr);
 
-	m_colorShader->Render(m_deviceContext);
+	m_shader->Render(m_deviceContext);
 	return true;
 }

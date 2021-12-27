@@ -101,6 +101,8 @@ bool DXGIDupMgr::CreateTexture(ID3D11Device* device, UINT width, UINT height, DX
         return false;
     }
     m_texture2dV.emplace_back(texture2d);
+
+    return true;
 }
 
 ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContext, void* destImage, UINT destSize, UINT* rowPitch)

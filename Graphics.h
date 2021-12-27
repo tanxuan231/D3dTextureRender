@@ -25,10 +25,10 @@ private:
 	bool CreateDeviceAndSwapChain(HWND hwnd, int width, int height);
 	bool CreateRenderTargetView();
 	void SetViewports(int width, int height);
-	bool InitColorShader();
+	bool InitShader();
 
 private:
-	TextureShader* m_colorShader;
+	TextureShader* m_shader;
 	DXGIDupMgr m_dxgiDupMgr;
 
 private:
