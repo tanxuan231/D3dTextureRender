@@ -44,6 +44,7 @@ public:
 
 private:
 	void DestoryVetexInfo();
+	void DestoryTextureInfo();
 
 	bool CompileShader(const WCHAR* vsFilename, const WCHAR* psFilename);
 	bool CreateShader(ID3D11Device* device);
@@ -53,9 +54,10 @@ private:
 	bool CreateVetexInfo(ID3D11Device* device);
 	void SetInfo(ID3D11DeviceContext* deviceContext);
 	bool SetInputAssemblerInfo(ID3D11DeviceContext* deviceContext);
-
+	
 	bool CreateSamplerState(ID3D11Device* device);
-
+	void SetTextureInfo(ID3D11DeviceContext* deviceContext);
+	bool CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* fileName);	
 private:
 	int m_indicesCount;
 
@@ -71,4 +73,6 @@ private:
 	ID3D11Buffer* m_indexBuffer;
 
 	ID3D11SamplerState* m_sampleState;
+	ID3D11Texture2D* m_texture;
+	ID3D11ShaderResourceView* m_textureView;
 };

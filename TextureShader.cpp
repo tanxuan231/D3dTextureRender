@@ -17,6 +17,10 @@ TextureShader::TextureShader()
 	m_vertexBuffer = nullptr;
 	m_indexBuffer = nullptr;
 	m_indicesCount = 0;
+
+	m_sampleState = nullptr;
+	m_texture = nullptr;
+	m_textureView = nullptr;
 }
 
 TextureShader::~TextureShader()
@@ -25,6 +29,7 @@ TextureShader::~TextureShader()
 
 void TextureShader::DeInit()
 {
+	DestoryVetexInfo();
 	DestoryVetexInfo();
 
 	if (m_pixelShaderBuffer) {
@@ -49,6 +54,24 @@ void TextureShader::DeInit()
 }
 
 void TextureShader::DestoryVetexInfo()
+{
+	if (m_sampleState) {
+		m_sampleState->Release();
+		m_sampleState = nullptr;
+	}
+
+	if (m_textureView) {
+		m_textureView->Release();
+		m_textureView = nullptr;
+	}
+
+	if (m_texture) {
+		m_texture->Release();
+		m_texture = nullptr;
+	}
+}
+
+void TextureShader::DestoryTextureInfo()
 {
 	if (m_vertexBuffer) {
 		m_vertexBuffer->Release();
@@ -264,6 +287,56 @@ bool TextureShader::CreateVetexInfo(ID3D11Device* device)
 	return true;
 }
 
+bool TextureShader::CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* fileName)
+{
+	int height, width;
+	if (!LoadTarga(fileName, height, width)) {
+		return false;
+	}
+
+	D3D11_TEXTURE2D_DESC textureDesc;
+
+	textureDesc.Height = height;
+	textureDesc.Width = width;
+	textureDesc.MipLevels = 0;
+	textureDesc.ArraySize = 1;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+	// 1. 创建一个空的纹理
+	HRESULT hr = device->CreateTexture2D(&textureDesc, NULL, &m_texture);
+	if (FAILED(hr)) {
+		return false;
+	}
+	
+	unsigned int rowPitch = (width * 4) * sizeof(unsigned char);
+
+	// 2. 拷贝图像数据到纹理（加载一次即可使用UpdateSubresource）
+	deviceContext->UpdateSubresource(m_texture, 0, NULL, GetTargaData(), rowPitch, 0);
+	
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = -1;	// Mipmap级别
+
+	// 3. 为纹理创建着色器资源视图
+	hr = device->CreateShaderResourceView(m_texture, &srvDesc, &m_textureView);
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	// 4. 为纹理资源视图创建Mipmap层级
+	deviceContext->GenerateMips(m_textureView);
+
+	ClearTargaData();
+}
+
 bool TextureShader::SetInputAssemblerInfo(ID3D11DeviceContext* deviceContext)
 {
 	unsigned int stride;
@@ -288,9 +361,20 @@ bool TextureShader::SetInputAssemblerInfo(ID3D11DeviceContext* deviceContext)
 	return true;
 }
 
+void TextureShader::SetTextureInfo(ID3D11DeviceContext* deviceContext)
+{
+	// 绑定纹理资源视图到像素着色器
+	deviceContext->PSSetShaderResources(0, 1, &m_textureView);
+
+	// 绑定采样状态到像素着色器
+	deviceContext->PSSetSamplers(0, 1, &m_sampleState);
+}
+
 void TextureShader::SetInfo(ID3D11DeviceContext* deviceContext)
 {
 	SetInputAssemblerInfo(deviceContext);
+
+	SetTextureInfo(deviceContext);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(m_vertexShader, NULL, 0);
