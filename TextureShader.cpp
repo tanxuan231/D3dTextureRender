@@ -84,6 +84,11 @@ void TextureShader::DestoryTextureInfo()
 	}
 }
 
+void TextureShader::SetTextureDataFile(const char* fileName)
+{	
+	m_fileName.assign(fileName);	
+}
+
 bool TextureShader::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 	const WCHAR* vsFilename, const WCHAR* psFilename)
 {
@@ -91,6 +96,7 @@ bool TextureShader::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContex
 	JUDGER(CreateShader(device));
 	JUDGER(CreateInputLayout(device));
 	JUDGER(CreateSamplerState(device));
+	JUDGER(CreateTextureFromFile(device, deviceContext));
 
 	JUDGER(CreateVetexInfo(device));
 	SetInfo(deviceContext);
@@ -229,10 +235,10 @@ bool TextureShader::CreateVetexInfo(ID3D11Device* device)
 {
 	// 1. 顶点集合	
 	VertexType vertexs[] = {
-		{-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-		{1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-		{1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},	
-		{-1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}
+		{-1.0f, -1.0f, 0.0f, 0.0f, 1.0f},	// 左下角
+		{1.0f, 1.0f, 0.0f, 1.0f, 0.0f},		// 右上角
+		{1.0f, -1.0f, 0.0f, 1.0f, 1.0f},	// 右下角
+		{-1.0f, 1.0f, 0.0f, 0.0f, 0.0f}		// 左上角
 	};	
 
 	// 2. 顶点索引集合
@@ -287,10 +293,10 @@ bool TextureShader::CreateVetexInfo(ID3D11Device* device)
 	return true;
 }
 
-bool TextureShader::CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* fileName)
+bool TextureShader::CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
 	int height, width;
-	if (!LoadTarga(fileName, height, width)) {
+	if (!LoadTarga((char*)m_fileName.c_str(), height, width)) {
 		return false;
 	}
 

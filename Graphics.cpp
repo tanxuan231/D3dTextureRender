@@ -61,7 +61,8 @@ void Graphics::DeInitColorShader()
 bool Graphics::InitColorShader()
 {
 	m_colorShader = new TextureShader();
-	return m_colorShader->Init(m_device, m_deviceContext, L"shader/Color.vs", L"shader/Color.ps");
+	m_colorShader->SetTextureDataFile("data/stone.tga");
+	return m_colorShader->Init(m_device, m_deviceContext, L"shader/Texture.vs", L"shader/Texture.ps");
 }
 
 bool Graphics::CreateDeviceAndSwapChain(HWND hwnd, int width, int height)

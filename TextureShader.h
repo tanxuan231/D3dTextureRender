@@ -2,14 +2,15 @@
 #include "ShaderHelp.h"
 #include <Windows.h>
 #include <d3d11.h>
+#include <string>
 
 class TextureShader : public ShaderHelp
 {
 	// 定义顶点类型（与顶点着色器中的输入类型及顶点数据布局中的数据大小保持一致）
 	struct VertexType {
 		VertexType(float _x, float _y, float _z,
-			float _r, float _g, float _b, float _a) :
-			Pos(_x, _y, _z), Color(_r, _g, _b, _a) {}
+			float _u, float _v) :
+			Pos(_x, _y, _z), Tex(_u, _v) {}
 
 		// DXGI_FORMAT_R32G32B32_FLOAT
 		struct Pos {
@@ -21,16 +22,14 @@ class TextureShader : public ShaderHelp
 			float z;
 			// float w;	// 该分量在顶点着色器中默认设置为了1.0f
 		} Pos;
-		// DXGI_FORMAT_R32G32B32A32_FLOAT
-		struct Color {
-			Color(float _r, float _g, float _b, float _a) :
-				r(_r), g(_g), b(_b), a(_a) {}
+		// DXGI_FORMAT_R32G32_FLOAT
+		struct Tex {
+			Tex(float _u, float _v) :
+				u(_u), v(_v) {}
 
-			float r;
-			float g;
-			float b;
-			float a;
-		} Color;
+			float u;
+			float v;
+		} Tex;
 	};
 
 public:
@@ -41,6 +40,8 @@ public:
 	bool Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext,
 		const WCHAR* vsFilename, const WCHAR* psFilename);
 	void Render(ID3D11DeviceContext* deviceContext);
+
+	void SetTextureDataFile(const char* fileName);
 
 private:
 	void DestoryVetexInfo();
@@ -57,9 +58,11 @@ private:
 	
 	bool CreateSamplerState(ID3D11Device* device);
 	void SetTextureInfo(ID3D11DeviceContext* deviceContext);
-	bool CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* fileName);	
+	bool CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+	
 private:
 	int m_indicesCount;
+	std::string m_fileName;
 
 private:
 	ID3D10Blob* m_vertexShaderBuffer;
