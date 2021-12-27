@@ -142,6 +142,7 @@
     <ClInclude Include="ColorShader.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="D3dTextureRender.h" />
+    <ClInclude Include="DxgiDuplicator.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Resource.h" />
@@ -151,7 +152,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ColorShader.cpp" />
+    <ClCompile Include="Common.cpp" />
     <ClCompile Include="D3dTextureRender.cpp" />
+    <ClCompile Include="DxgiDuplicator.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="ShaderHelp.cpp" />
     <ClCompile Include="TextureShader.cpp" />

@@ -11,6 +11,8 @@ Graphics::Graphics()
 	m_device = nullptr;
 	m_deviceContext = nullptr;
 	m_renderTargetView = nullptr;
+	m_dxgiDevice = nullptr;
+	m_dxgiAdapter = nullptr;
 }
 
 Graphics::~Graphics()
@@ -21,6 +23,8 @@ Graphics::~Graphics()
 void Graphics::DeInit()
 {
 	DeInitColorShader();
+
+	DeInitDxgi();
 
 	if (m_renderTargetView) {
 		m_renderTargetView->Release();
@@ -39,12 +43,23 @@ void Graphics::DeInit()
 	}
 }
 
+void Graphics::DeInitDxgi()
+{
+	if (m_dxgiAdapter)
+		m_dxgiAdapter->Release();
+	if (m_dxgiDevice)
+		m_dxgiDevice->Release();
+}
+
 bool Graphics::Init(HWND hwnd, int width, int height)
 {
 	JUDGER(CreateDeviceAndSwapChain(hwnd, width, height));	
 	JUDGER(CreateRenderTargetView());	
 	SetViewports(width, height);
 	JUDGER(InitColorShader());
+
+	// DXGI抓图初始化
+	JUDGER(m_dxgiDupMgr.Init(m_device, m_dxgiAdapter));
 
 	return true;
 }
@@ -112,10 +127,36 @@ bool Graphics::CreateDeviceAndSwapChain(HWND hwnd, int width, int height)
 	// 特征级别设置为 11.0，即 DirectX 11
 	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
 
+	// 1.创建交换链、设备及上下文
 	HRESULT hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featureLevel, 1,
 		D3D11_SDK_VERSION, &swapChainDesc, &m_swapChain, &m_device, NULL, &m_deviceContext);
 	if (FAILED(hr)) {
 		return false;
+	}
+
+	// 为抓取桌面图像创建DXGI设备
+	// 2.创建DXGI设备
+	hr = m_device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&m_dxgiDevice));
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	// 3.获取DXGI适配器
+	hr = m_dxgiDevice->GetParent(__uuidof(IDXGIAdapter), reinterpret_cast<void**>(&m_dxgiAdapter));
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	// 3.1 枚举所有显示器
+	for (int i = 0; i < 6; i++) {
+		IDXGIOutput* dxgiOutput;
+		HRESULT hr = m_dxgiAdapter->EnumOutputs(i, &dxgiOutput);
+		if (FAILED(hr)) {			
+			break;
+		}
+		DXGI_OUTPUT_DESC desc;
+		dxgiOutput->GetDesc(&desc);
+		// 输出信息
 	}
 
 	return true;
