@@ -133,7 +133,7 @@ bool ColorShader::CreateInputLayout(ID3D11Device* device)
 	const D3D11_INPUT_ELEMENT_DESC inputElementDescs[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 8u, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	HRESULT hr = device->CreateInputLayout(
@@ -264,7 +264,7 @@ void ColorShader::SetInfo(ID3D11DeviceContext* deviceContext)
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(m_vertexShader, NULL, 0);
-	deviceContext->PSSetShader(m_pixelShader, NULL, 0);
+	deviceContext->PSSetShader(m_pixelShader, NULL, 0);	
 }
 
 void ColorShader::Render(ID3D11DeviceContext* deviceContext)

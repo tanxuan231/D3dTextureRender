@@ -180,6 +180,8 @@ void Graphics::EndScene()
 
 bool Graphics::Render()
 {
+	m_deviceContext->OMSetRenderTargets(1u, &m_renderTargetView, nullptr);
+
 	m_colorShader->Render(m_deviceContext);
 	return true;
 }
