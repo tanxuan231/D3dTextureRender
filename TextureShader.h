@@ -54,6 +54,8 @@ private:
 	void SetInfo(ID3D11DeviceContext* deviceContext);
 	bool SetInputAssemblerInfo(ID3D11DeviceContext* deviceContext);
 
+	bool CreateSamplerState(ID3D11Device* device);
+
 private:
 	int m_indicesCount;
 
@@ -67,4 +69,6 @@ private:
 
 	ID3D11Buffer* m_vertexBuffer;
 	ID3D11Buffer* m_indexBuffer;
+
+	ID3D11SamplerState* m_sampleState;
 };

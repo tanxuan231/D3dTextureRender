@@ -67,6 +67,7 @@ bool TextureShader::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContex
 	JUDGER(CompileShader(vsFilename, psFilename));
 	JUDGER(CreateShader(device));
 	JUDGER(CreateInputLayout(device));
+	JUDGER(CreateSamplerState(device));
 
 	JUDGER(CreateVetexInfo(device));
 	SetInfo(deviceContext);
@@ -80,7 +81,7 @@ bool TextureShader::CompileShader(const WCHAR* vsFilename, const WCHAR* psFilena
 
 	// 编译顶点着色器
 	HRESULT hr = D3DCompileFromFile(vsFilename, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
-		"ColorVsMain",	// 着色器入口函数 
+		"TextureVsMain",	// 着色器入口函数 
 		"vs_5_0", 
 		D3D10_SHADER_ENABLE_STRICTNESS, 
 		0,
@@ -92,7 +93,7 @@ bool TextureShader::CompileShader(const WCHAR* vsFilename, const WCHAR* psFilena
 
 	// 编译像素着色器
 	hr = D3DCompileFromFile(psFilename, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
-		"ColorPsMain",	// 着色器入口函数 
+		"TexturePsMain",	// 着色器入口函数 
 		"ps_5_0",
 		D3D10_SHADER_ENABLE_STRICTNESS,
 		0,
@@ -153,8 +154,8 @@ bool TextureShader::CreateInputLayout(ID3D11Device* device)
 	// 创建顶点数据布局
 	const D3D11_INPUT_ELEMENT_DESC inputElementDescs[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },	// float4类型
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0 },	// float2类型
 	};
 
 	HRESULT hr = device->CreateInputLayout(
@@ -171,6 +172,32 @@ bool TextureShader::CreateInputLayout(ID3D11Device* device)
 	m_vertexShaderBuffer = nullptr;
 	m_pixelShaderBuffer->Release();
 	m_pixelShaderBuffer = nullptr;
+
+	return true;
+}
+
+bool TextureShader::CreateSamplerState(ID3D11Device* device)
+{
+	// 创建纹理采样状态
+	D3D11_SAMPLER_DESC samplerDesc;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = 0;
+	samplerDesc.BorderColor[1] = 0;
+	samplerDesc.BorderColor[2] = 0;
+	samplerDesc.BorderColor[3] = 0;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	HRESULT hr = device->CreateSamplerState(&samplerDesc, &m_sampleState);
+	if (FAILED(hr)) {
+		return false;
+	}
 
 	return true;
 }
