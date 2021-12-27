@@ -1,9 +1,4 @@
-// 定义像素着色器的输入结构体（就是顶点着色器的输出结构）
-struct PinputType
-{
-	float4 position : SV_POSITION;	// 位置。SV_POSITION像素着色器内部变量
-	float4 color : COLOR;	// 颜色
-};
+#include "Color.i"
 
 // 入口函数
 float4 ColorPsMain(PinputType input) : SV_TARGET

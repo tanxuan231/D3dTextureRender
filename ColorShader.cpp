@@ -79,7 +79,7 @@ bool ColorShader::CompileShader(const WCHAR* vsFilename, const WCHAR* psFilename
 	ID3D10Blob* errorMessage = nullptr;
 
 	// 编译顶点着色器
-	HRESULT hr = D3DCompileFromFile(vsFilename, NULL, NULL, 
+	HRESULT hr = D3DCompileFromFile(vsFilename, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		"ColorVsMain",	// 着色器入口函数 
 		"vs_5_0", 
 		D3D10_SHADER_ENABLE_STRICTNESS, 
@@ -91,7 +91,7 @@ bool ColorShader::CompileShader(const WCHAR* vsFilename, const WCHAR* psFilename
 	}
 
 	// 编译像素着色器
-	hr = D3DCompileFromFile(psFilename, NULL, NULL,
+	hr = D3DCompileFromFile(psFilename, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		"ColorPsMain",	// 着色器入口函数 
 		"ps_5_0",
 		D3D10_SHADER_ENABLE_STRICTNESS,
