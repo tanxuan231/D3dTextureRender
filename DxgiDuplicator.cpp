@@ -86,15 +86,33 @@ bool DXGIDupMgr::CreateTexture(ID3D11Device* device, UINT width, UINT height, DX
 
     texture2dDesc.Width = width;
     texture2dDesc.Height = height;
-    texture2dDesc.Format = format;
+    texture2dDesc.Format = format;    
     texture2dDesc.ArraySize = 1;
-    texture2dDesc.BindFlags = 0;
-    texture2dDesc.MiscFlags = 0;
     texture2dDesc.SampleDesc.Count = 1;
     texture2dDesc.SampleDesc.Quality = 0;
+    
+#if 0
+    texture2dDesc.MipLevels = 0;
+    texture2dDesc.CPUAccessFlags = 0;
+    texture2dDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+    texture2dDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+    texture2dDesc.Usage = D3D11_USAGE_DEFAULT;
+#else
     texture2dDesc.MipLevels = 1;
     texture2dDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    texture2dDesc.BindFlags = 0;
+    texture2dDesc.MiscFlags = 0;
     texture2dDesc.Usage = D3D11_USAGE_STAGING;
+
+    /*
+    * OK FOR DUP
+    texture2dDesc.MipLevels = 1;
+    texture2dDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    texture2dDesc.BindFlags = 0;
+    texture2dDesc.MiscFlags = 0;
+    texture2dDesc.Usage = D3D11_USAGE_STAGING;
+    */
+#endif
 
     HRESULT hr = device->CreateTexture2D(&texture2dDesc, NULL, &texture2d);
     if (FAILED(hr)) {
@@ -105,11 +123,8 @@ bool DXGIDupMgr::CreateTexture(ID3D11Device* device, UINT width, UINT height, DX
     return true;
 }
 
-ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContext, void* destImage, UINT destSize, UINT* rowPitch)
+ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContext)
 {
-    cout << "get frame start" << endl;
-    *rowPitch = 0;
-
     // 7. 获取桌面图像
     DXGI_OUTDUPL_FRAME_INFO frameInfo;
     IDXGIResource* idxgiRes;
@@ -136,11 +151,25 @@ ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContex
         return nullptr;
     }
 
+    D3D11_TEXTURE2D_DESC desc;
+    desktopTexture2d->GetDesc(&desc);
+
     // 【资源释放】9.1 查询到数据后，释放IDXG资源
     idxgiRes->Release();
+
     // 8. 将桌面图像拷贝出来
     // 8.2 复制纹理(GPU间复制)
     deviceContext->CopyResource(m_texture2dV[idx], desktopTexture2d);
+
+    // 纹理映射测试----------------------------
+    D3D11_MAPPED_SUBRESOURCE resource;
+    UINT subresource = D3D11CalcSubresource(0, 0, 0);
+    deviceContext->Map(m_texture2dV[idx], subresource, D3D11_MAP_READ, 0, &resource);
+    if (!resource.pData) {
+        std::cout << "nulll";
+    }
+    deviceContext->Unmap(m_texture2dV[idx], subresource);
+    // ----------------------------
 
     // 【资源释放】9.2 拷贝完数据后，释放桌面纹理
     desktopTexture2d->Release();
@@ -149,4 +178,38 @@ ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContex
     m_outputDupV[idx]->ReleaseFrame();
 
     return m_texture2dV[idx];
+}
+
+void DXGIDupMgr::Save2File(int idx, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture)
+{
+    int destSize = 1920*1080*4;
+    BYTE* destImage = new BYTE[destSize];
+
+    // 8.3 纹理映射(GPU -> CPU)
+    D3D11_MAPPED_SUBRESOURCE resource;
+    UINT subresource = D3D11CalcSubresource(0, 0, 0);
+    deviceContext->Map(texture, subresource, D3D11_MAP_READ, 0, &resource);
+
+    if (!resource.pData) {
+        return;
+    }
+
+    DXGI_OUTDUPL_DESC dxgiOutduplDesc;
+    m_outputDupV[idx]->GetDesc(&dxgiOutduplDesc);
+    UINT height = dxgiOutduplDesc.ModeDesc.Height;
+    UINT rowPitch = resource.RowPitch;   
+
+    UINT size = height * resource.RowPitch;
+    memcpy_s(destImage, destSize, reinterpret_cast<BYTE*>(resource.pData), size);
+
+    deviceContext->Unmap(texture, subresource);
+
+    // 保持到文件
+    static int index = 0;
+    char fileName[MAX_PATH] = { 0 };
+    CreateDirectory(L"bmp", NULL);
+    sprintf_s(fileName, "bmp/%d_%d.bmp", idx, index++);
+    saveBitmap(destImage, rowPitch, GetImageHeight(idx), fileName);
+
+    delete [] destImage;
 }

@@ -81,8 +81,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 bool RenderFrame(Graphics* graphics)
 {
     graphics->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
-    graphics->Render();
+    if (!graphics->Render()) {
+        static int index = 0;
+        if (index++ >= 3)
+            return false;
+        MessageBox(g_hWnd, L"Error Graphics Render.", L"Error Graphics Render.", MB_OK);
+    }
     graphics->EndScene();
+
+    static long index = 0;
+    wchar_t buffer[256] = {0};
+    wsprintfW(buffer, L"index: %d", index++);
+    SetWindowText(g_hWnd, buffer);
 
     return true;
 }

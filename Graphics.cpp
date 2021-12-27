@@ -224,6 +224,14 @@ bool Graphics::Render()
 {
 	m_deviceContext->OMSetRenderTargets(1u, &m_renderTargetView, nullptr);
 
-	m_shader->Render(m_deviceContext);
+	int idx = 0;
+	ID3D11Texture2D* desktop = m_dxgiDupMgr.GetFrame(idx, m_deviceContext);
+	if (!desktop) {
+		return false;
+	}
+	m_dxgiDupMgr.Save2File(idx, m_deviceContext, desktop);
+
+	JUDGER(m_shader->Render(m_device, m_deviceContext, desktop));
+
 	return true;
 }

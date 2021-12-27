@@ -24,7 +24,8 @@ public:
         return desc.ModeDesc.Height;
     }
 
-    ID3D11Texture2D* GetFrame(int idx, ID3D11DeviceContext* deviceContext, void* destImage, UINT destSize, UINT* rowPitch);
+    ID3D11Texture2D* GetFrame(int idx, ID3D11DeviceContext* deviceContext);
+    void Save2File(int idx, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture);
 
 private:
     bool InitOutput(int monitorIdx, ID3D11Device* device, IDXGIAdapter* dxgiAdapter);    

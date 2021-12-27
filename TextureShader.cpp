@@ -96,7 +96,7 @@ bool TextureShader::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContex
 	JUDGER(CreateShader(device));
 	JUDGER(CreateInputLayout(device));
 	JUDGER(CreateSamplerState(device));
-	JUDGER(CreateTextureFromFile(device, deviceContext));
+	//JUDGER(CreateTextureFromFile(device, deviceContext));
 
 	JUDGER(CreateVetexInfo(device));
 	SetInfo(deviceContext);
@@ -341,6 +341,37 @@ bool TextureShader::CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceCont
 	deviceContext->GenerateMips(m_textureView);
 
 	ClearTargaData();
+
+	return true;
+}
+
+bool TextureShader::UpdateTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture)
+{
+	if (!texture) {
+		return true;
+	}
+
+	D3D11_TEXTURE2D_DESC desc;
+	texture->GetDesc(&desc);
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Format = desc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = -1;	// Mipmap级别
+
+	// 3. 为纹理创建着色器资源视图(注意：纹理BindFlags需要设置为D3D11_BIND_SHADER_RESOURCE)
+	HRESULT hr = device->CreateShaderResourceView(texture, &srvDesc, &m_textureView);
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	// 4. 为纹理资源视图创建Mipmap层级
+	deviceContext->GenerateMips(m_textureView);
+	
+	// 绑定纹理资源视图到像素着色器
+	deviceContext->PSSetShaderResources(0, 1, &m_textureView);
+	return true;
 }
 
 bool TextureShader::SetInputAssemblerInfo(ID3D11DeviceContext* deviceContext)
@@ -370,7 +401,7 @@ bool TextureShader::SetInputAssemblerInfo(ID3D11DeviceContext* deviceContext)
 void TextureShader::SetTextureInfo(ID3D11DeviceContext* deviceContext)
 {
 	// 绑定纹理资源视图到像素着色器
-	deviceContext->PSSetShaderResources(0, 1, &m_textureView);
+	//deviceContext->PSSetShaderResources(0, 1, &m_textureView);
 
 	// 绑定采样状态到像素着色器
 	deviceContext->PSSetSamplers(0, 1, &m_sampleState);
@@ -387,8 +418,11 @@ void TextureShader::SetInfo(ID3D11DeviceContext* deviceContext)
 	deviceContext->PSSetShader(m_pixelShader, NULL, 0);	
 }
 
-void TextureShader::Render(ID3D11DeviceContext* deviceContext)
+bool TextureShader::Render(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture)
 {
-	// Render the triangle.
+	if (!UpdateTexture(device, deviceContext, texture)) {
+		return false;
+	}
+	
 	deviceContext->DrawIndexed(m_indicesCount, 0, 0);
 }
