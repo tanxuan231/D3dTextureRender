@@ -60,7 +60,7 @@ void Graphics::DeInitColorShader()
 
 bool Graphics::InitColorShader()
 {
-	m_colorShader = new ColorShader();
+	m_colorShader = new TextureShader();
 	return m_colorShader->Init(m_device, m_deviceContext, L"shader/Color.vs", L"shader/Color.ps");
 }
 

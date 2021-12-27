@@ -147,12 +147,14 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ShaderHelp.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TextureShader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ColorShader.cpp" />
     <ClCompile Include="D3dTextureRender.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="ShaderHelp.cpp" />
+    <ClCompile Include="TextureShader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="D3dTextureRender.rc" />
@@ -178,7 +180,19 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader\Color.i" />
+    <FxCompile Include="shader\Texture.ps">
+      <FileType>Document</FileType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TexturePsMain</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shader\Texture.vs">
+      <FileType>Document</FileType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TextureVsMain</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\ComonType.i" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

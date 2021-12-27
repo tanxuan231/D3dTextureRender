@@ -1,0 +1,16 @@
+#include "ComonType.i"
+
+Texture2D shaderTexture;
+SamplerState SampleType;
+
+// 入口函数
+float4 TexturePsMain(tPinputtype input) : SV_TARGET
+{
+	float4 textureColor;
+
+    // Sample函数使用采样器状态（SampleType）和该像素的纹理坐标（tex）,
+    // 来确定并返回多边形面上此 UV 位置的像素值。
+    textureColor = shaderTexture.Sample(SampleType, input.tex);
+
+    return textureColor;
+}

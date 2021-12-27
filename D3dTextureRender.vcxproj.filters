@@ -42,6 +42,9 @@
     <ClInclude Include="Common.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="TextureShader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="D3dTextureRender.cpp">
@@ -54,6 +57,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ShaderHelp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureShader.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,9 +83,15 @@
     <FxCompile Include="shader\Color.ps">
       <Filter>shader</Filter>
     </FxCompile>
+    <FxCompile Include="shader\Texture.ps">
+      <Filter>shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\Texture.vs">
+      <Filter>shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader\Color.i">
+    <None Include="shader\ComonType.i">
       <Filter>shader</Filter>
     </None>
   </ItemGroup>

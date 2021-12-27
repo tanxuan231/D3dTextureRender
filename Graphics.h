@@ -1,7 +1,7 @@
 #pragma once
 #include <Windows.h>
 #include <d3d11.h>
-#include "ColorShader.h"
+#include "TextureShader.h"
 
 class Graphics 
 {
@@ -26,7 +26,7 @@ private:
 	bool InitColorShader();
 
 private:
-	ColorShader* m_colorShader;
+	TextureShader* m_colorShader;
 
 private:
 	IDXGISwapChain* m_swapChain;
