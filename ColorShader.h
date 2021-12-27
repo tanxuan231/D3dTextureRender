@@ -55,7 +55,7 @@ private:
 	bool SetInputAssemblerInfo(ID3D11DeviceContext* deviceContext);
 
 private:
-	int m_vertexCount;
+	int m_indicesCount;
 
 private:
 	ID3D10Blob* m_vertexShaderBuffer;

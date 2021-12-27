@@ -16,7 +16,7 @@ ColorShader::ColorShader()
 
 	m_vertexBuffer = nullptr;
 	m_indexBuffer = nullptr;
-	m_vertexCount = 0;
+	m_indicesCount = 0;
 }
 
 ColorShader::~ColorShader()
@@ -127,6 +127,27 @@ bool ColorShader::CreateShader(ID3D11Device* device)
 	return true;
 }
 
+bool ColorShader::CreateConstantBuffer(ID3D11Device* device)
+{
+	// 创建常量缓冲，用于跟着色器交换数据。当前不需要
+	ID3D11Buffer* buffer;
+
+	D3D11_BUFFER_DESC bufferDesc;
+	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc.ByteWidth = sizeof(UINT);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = 0;
+
+	HRESULT hr = device->CreateBuffer(&bufferDesc, NULL, &buffer);
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	return true;
+}
+
 bool ColorShader::CreateInputLayout(ID3D11Device* device)
 {
 	// 创建顶点数据布局
@@ -154,41 +175,23 @@ bool ColorShader::CreateInputLayout(ID3D11Device* device)
 	return true;
 }
 
-bool ColorShader::CreateConstantBuffer(ID3D11Device* device)
-{
-	// 创建常量缓冲，用于跟着色器交换数据。当前不需要
-	ID3D11Buffer* buffer;
-
-	D3D11_BUFFER_DESC bufferDesc;
-	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	bufferDesc.ByteWidth = sizeof(UINT);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	bufferDesc.MiscFlags = 0;
-	bufferDesc.StructureByteStride = 0;
-
-	HRESULT hr = device->CreateBuffer(&bufferDesc, NULL, &buffer);
-	if (FAILED(hr)) {
-		return false;
-	}
-
-	return true;
-}
-
 bool ColorShader::CreateVetexInfo(ID3D11Device* device)
 {
 	// 1. 顶点集合	
 	VertexType vertexs[] = {
 		{-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-		{0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-		{1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}
-	};
-	m_vertexCount = sizeof(vertexs) / sizeof(vertexs[0]);
+		{1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+		{1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},	
+		{-1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}
+	};	
 
 	// 2. 顶点索引集合
 	unsigned int indices[] = {
-		0, 1, 2
+		0, 1, 2,	// 第一个三角形（左下顶点起顺时针）
+		0, 3, 1		// 第二个三角形
 	};
+
+	m_indicesCount = sizeof(indices) / sizeof(indices[0]);
 
 	// 3. 创建顶点缓冲
 	D3D11_BUFFER_DESC vertexBufferDesc;
@@ -270,5 +273,5 @@ void ColorShader::SetInfo(ID3D11DeviceContext* deviceContext)
 void ColorShader::Render(ID3D11DeviceContext* deviceContext)
 {
 	// Render the triangle.
-	deviceContext->DrawIndexed(m_vertexCount, 0, 0);
+	deviceContext->DrawIndexed(m_indicesCount, 0, 0);
 }
