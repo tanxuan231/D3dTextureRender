@@ -59,6 +59,8 @@ bool Graphics::Init(HWND hwnd, int width, int height)
 	JUDGER(InitShader());
 
 	// DXGI×¥Í¼³õÊ¼»¯
+	m_dxgiDupMgr.EnableCursorCap();
+	//m_dxgiDupMgr.EnableSave2File();
 	JUDGER(m_dxgiDupMgr.Init(m_device, m_dxgiAdapter));
 
 	return true;

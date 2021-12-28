@@ -10,7 +10,10 @@ using namespace std;
 
 DXGIDupMgr::DXGIDupMgr()
 {
+    m_cursorTex = nullptr;
+
     m_save2file = false;
+    m_cursorCap = false;
 }
 
 DXGIDupMgr::~DXGIDupMgr()
@@ -26,6 +29,9 @@ DXGIDupMgr::~DXGIDupMgr()
     }
     for (auto e : m_dxgiOutputV) {
         e->Release();
+    }
+    if (m_cursorTex) {
+        m_cursorTex->Release();
     }
 }
 
@@ -104,6 +110,16 @@ bool DXGIDupMgr::CreateTexture(ID3D11Device* device, UINT width, UINT height, DX
     }
     m_texture2dV.emplace_back(texture2d);
 
+    texture2dDesc.CPUAccessFlags = 0;
+    texture2dDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET;
+    texture2dDesc.MiscFlags = D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
+    texture2dDesc.Usage = D3D11_USAGE_DEFAULT;
+    
+    hr = device->CreateTexture2D(&texture2dDesc, NULL, &m_cursorTex);
+    if (FAILED(hr)) {
+        return false;
+    }
+
     return true;
 }
 
@@ -130,20 +146,22 @@ ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContex
 
     ID3D11Texture2D* desktopTexture2d;
     hr = idxgiRes->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&desktopTexture2d));
+    // 【资源释放】9.1 查询到数据后，释放IDXG资源
+    idxgiRes->Release();
     if (FAILED(hr)) {
         cout << "failed for get desktopTexture2d" << endl;
         return nullptr;
     }
 
-    // 【资源释放】9.1 查询到数据后，释放IDXG资源
-    idxgiRes->Release();
-
     // 8. 将桌面图像拷贝出来
     // 8.2 复制纹理(GPU间复制)    
-    deviceContext->CopyResource(m_texture2dV[idx], desktopTexture2d);
-    
+    deviceContext->CopyResource(m_cursorTex, desktopTexture2d);
     // 【资源释放】9.2 拷贝完数据后，释放桌面纹理
     desktopTexture2d->Release();
+
+    DrawCursor();
+
+    deviceContext->CopyResource(m_texture2dV[idx], m_cursorTex);
 
     // 【资源释放】9.3 需要释放帧，对应AcquireNextFrame
     m_outputDupV[idx]->ReleaseFrame();
@@ -151,6 +169,36 @@ ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContex
     Save2File(idx, deviceContext, m_texture2dV[idx]);
 
     return m_texture2dV[idx];
+}
+
+bool DXGIDupMgr::DrawCursor()
+{
+    if (!m_cursorCap) {
+        return true;
+    }
+
+    IDXGISurface1* surface;
+    HRESULT hr = m_cursorTex->QueryInterface(IID_PPV_ARGS(&surface));
+    if (FAILED(hr)) {
+        return false;
+    }
+
+    CURSORINFO cursorInfo = { 0 };
+    cursorInfo.cbSize = sizeof(cursorInfo);
+
+    if (GetCursorInfo(&cursorInfo)) {
+        if (cursorInfo.flags == CURSOR_SHOWING) {
+            auto pos = cursorInfo.ptScreenPos;
+
+            HDC  hdc;
+            hr = surface->GetDC(FALSE, &hdc);
+            bool ret = DrawIconEx(hdc, pos.x, pos.y, cursorInfo.hCursor,
+                0, 0, 0, 0, DI_NORMAL | DI_DEFAULTSIZE);
+            hr = surface->ReleaseDC(nullptr);
+        }
+    }
+
+    return true;
 }
 
 void DXGIDupMgr::Save2File(int idx, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture)
