@@ -16,7 +16,7 @@ public:
 	void BeginScene(float red, float green, float blue, float alpha);
 	void EndScene();
 
-	bool Render();
+	bool Render(int desktopId);
 
 private:
 	void DeInitColorShader();

@@ -12,6 +12,8 @@ public:
 
     bool Init(ID3D11Device* device, IDXGIAdapter* dxgiAdapter);
 
+    void EnableSave2File() { m_save2file = true; }
+
     UINT GetImageHeight(int idx) {
         DXGI_OUTDUPL_DESC desc;
         m_outputDupV[idx]->GetDesc(&desc);
@@ -31,6 +33,8 @@ private:
     bool InitOutput(int monitorIdx, ID3D11Device* device, IDXGIAdapter* dxgiAdapter);    
     bool CreateTexture(ID3D11Device* device, UINT width, UINT height, DXGI_FORMAT format);    
 
+private:
+    bool m_save2file;
 private:
     std::vector<IDXGIOutput*> m_dxgiOutputV;
     std::vector<IDXGIOutput1*> m_dxgiOutput1V;

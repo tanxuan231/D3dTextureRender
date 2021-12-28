@@ -220,16 +220,15 @@ void Graphics::EndScene()
 	return;
 }
 
-bool Graphics::Render()
+bool Graphics::Render(int desktopId)
 {
 	m_deviceContext->OMSetRenderTargets(1u, &m_renderTargetView, nullptr);
 
-	int idx = 0;
-	ID3D11Texture2D* desktop = m_dxgiDupMgr.GetFrame(idx, m_deviceContext);
+	ID3D11Texture2D* desktop = m_dxgiDupMgr.GetFrame(desktopId, m_deviceContext);
 	if (!desktop) {
-		return false;
-	}
-	m_dxgiDupMgr.Save2File(idx, m_deviceContext, desktop);
+		//MessageBox(nullptr, L"Error GetFrame.", L"Error GetFrame.", MB_OK);
+		return true;
+	}	
 
 	JUDGER(m_shader->Render(m_device, m_deviceContext, desktop));
 

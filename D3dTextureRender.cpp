@@ -18,7 +18,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-bool RenderFrame(Graphics*);
+bool RenderFrame(Graphics* graphics, int desktopId);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -53,6 +53,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     bool result = true;
 
     // 主消息循环:
+    long int desktopId = 0;
     while (!done) {   
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
@@ -67,7 +68,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             done = true;
         } else {
             // 渲染一帧
-            result = RenderFrame(graphics);
+            result = RenderFrame(graphics, /*desktopId++ % 2*/0);
             if (!result) {
                 done = true;
             }
@@ -78,10 +79,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     return (int) msg.wParam;
 }
 
-bool RenderFrame(Graphics* graphics)
+bool RenderFrame(Graphics* graphics, int desktopId)
 {
     graphics->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
-    if (!graphics->Render()) {
+    if (!graphics->Render(desktopId)) {
         static int index = 0;
         if (index++ >= 3)
             return false;
@@ -89,10 +90,12 @@ bool RenderFrame(Graphics* graphics)
     }
     graphics->EndScene();
 
+    /*
     static long index = 0;
     wchar_t buffer[256] = {0};
     wsprintfW(buffer, L"index: %d", index++);
     SetWindowText(g_hWnd, buffer);
+    */
 
     return true;
 }

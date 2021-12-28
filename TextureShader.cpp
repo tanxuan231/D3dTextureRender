@@ -345,23 +345,48 @@ bool TextureShader::CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceCont
 	return true;
 }
 
-bool TextureShader::UpdateTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture)
+bool TextureShader::UpdateTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* desktopTex)
 {
-	if (!texture) {
+	if (!desktopTex) {
 		return true;
 	}
 
 	D3D11_TEXTURE2D_DESC desc;
-	texture->GetDesc(&desc);
+	desktopTex->GetDesc(&desc);
 
+	// 1. 创建一个空的纹理
+	D3D11_TEXTURE2D_DESC textureDesc;
+	textureDesc.Height = desc.Height;
+	textureDesc.Width = desc.Width;
+	textureDesc.Format = desc.Format;
+	textureDesc.MipLevels = 0;
+	textureDesc.ArraySize = 1;	
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;	
+	HRESULT hr = device->CreateTexture2D(&textureDesc, NULL, &m_texture);
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	// 2. 拷贝图像数据到纹理（加载一次即可使用UpdateSubresource）
+	D3D11_MAPPED_SUBRESOURCE resource;
+	UINT subresource = D3D11CalcSubresource(0, 0, 0);
+	deviceContext->Map(desktopTex, subresource, D3D11_MAP_READ, 0, &resource);
+	deviceContext->UpdateSubresource(m_texture, 0, NULL, resource.pData, resource.RowPitch, 0);
+	deviceContext->Unmap(desktopTex, subresource);
+
+	// 3. 为纹理创建着色器资源视图(注意：纹理BindFlags需要设置为D3D11_BIND_SHADER_RESOURCE)
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Format = desc.Format;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	srvDesc.Texture2D.MipLevels = -1;	// Mipmap级别
-
-	// 3. 为纹理创建着色器资源视图(注意：纹理BindFlags需要设置为D3D11_BIND_SHADER_RESOURCE)
-	HRESULT hr = device->CreateShaderResourceView(texture, &srvDesc, &m_textureView);
+	hr = device->CreateShaderResourceView(m_texture, &srvDesc, &m_textureView);
+	m_texture->Release();
 	if (FAILED(hr)) {
 		return false;
 	}
@@ -418,11 +443,14 @@ void TextureShader::SetInfo(ID3D11DeviceContext* deviceContext)
 	deviceContext->PSSetShader(m_pixelShader, NULL, 0);	
 }
 
-bool TextureShader::Render(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture)
+bool TextureShader::Render(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* desktopTex)
 {
-	if (!UpdateTexture(device, deviceContext, texture)) {
+	if (!UpdateTexture(device, deviceContext, desktopTex)) {
+		MessageBox(nullptr, L"Error UpdateTexture.", L"Error UpdateTexture.", MB_OK);
 		return false;
 	}
 	
 	deviceContext->DrawIndexed(m_indicesCount, 0, 0);
+
+	return true;
 }

@@ -39,10 +39,10 @@ public:
 	void DeInit();
 	bool Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext,
 		const WCHAR* vsFilename, const WCHAR* psFilename);
-	bool Render(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture);
+	bool Render(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* desktopTex);
 
 	void SetTextureDataFile(const char* fileName);
-	bool UpdateTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture);
+	bool UpdateTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* desktopTex);
 
 private:
 	void DestoryVetexInfo();
