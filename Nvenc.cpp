@@ -15,7 +15,7 @@ NvEnc::~NvEnc()
 }
 
 bool NvEnc::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-    uint32_t width, uint32_t height, std::string outFilePath)
+    uint32_t width, uint32_t height, DXGI_FORMAT inputFormat, std::string outFilePath)
 {
     if (!device || !deviceContext || width == 0 || height == 0) {
         return false;
@@ -36,7 +36,7 @@ bool NvEnc::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext,
 
     OpenSession();
     InitializeEncoder();
-    CreateInputBuffer();
+    CreateInputBuffer(inputFormat);
     RegisterResource();
     CreateOutputBuffer();
 
@@ -91,9 +91,9 @@ bool NvEnc::InitializeEncoder()
     m_funList.nvEncGetEncodePresetConfig(m_encoder, NV_ENC_CODEC_H264_GUID, NV_ENC_PRESET_P3_GUID, &presetConfig);
     NV_ENC_CONFIG config = { NV_ENC_CONFIG_VER };
     memcpy(&config, &presetConfig.presetCfg, sizeof(config));
-    config.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR;
-    config.rcParams.averageBitRate = 25000;
-    config.gopLength = 10;
+    //config.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR;
+    //config.rcParams.averageBitRate = 25000;
+    //config.gopLength = 10;
 
     NV_ENC_INITIALIZE_PARAMS encoder_init_params = { NV_ENC_INITIALIZE_PARAMS_VER };
     encoder_init_params.encodeConfig = &config;
@@ -128,7 +128,7 @@ bool NvEnc::InitializeEncoder()
     return true;
 }
 
-bool NvEnc::CreateInputBuffer()
+bool NvEnc::CreateInputBuffer(DXGI_FORMAT inputFormat)
 {
     D3D11_TEXTURE2D_DESC desc;
     ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
@@ -136,7 +136,7 @@ bool NvEnc::CreateInputBuffer()
     desc.Height = m_encodeHeight;
     desc.MipLevels = 1;
     desc.ArraySize = 1;
-    desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    desc.Format = inputFormat;
     desc.SampleDesc.Count = 1;
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.BindFlags = D3D11_BIND_RENDER_TARGET;

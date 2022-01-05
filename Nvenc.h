@@ -11,7 +11,7 @@ public:
 	NvEnc();
 	~NvEnc();
 	bool Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext,
-		uint32_t width, uint32_t height, std::string outFilePath);
+		uint32_t width, uint32_t height, DXGI_FORMAT inputFormat, std::string outFilePath);
 	void DeInit();
 
 	bool EncodeFrame(void* frame);
@@ -20,7 +20,7 @@ private:
 	bool OpenSession();
 	bool InitializeEncoder();
 	
-	bool CreateInputBuffer();
+	bool CreateInputBuffer(DXGI_FORMAT format);
 	bool DestoryInputBuffer();
 
 	bool RegisterResource();
@@ -38,8 +38,8 @@ private:
 	NV_ENC_MAP_INPUT_RESOURCE m_inputMapResource;
 	NV_ENC_CREATE_BITSTREAM_BUFFER m_outputBuffer;
 
-	uint32_t m_encodeWidth;
-	uint32_t m_encodeHeight;
+	uint32_t m_encodeWidth = 0;
+	uint32_t m_encodeHeight = 0;
 	uint32_t m_frameRate = 30;
 	bool m_forceNv12 = false;
 

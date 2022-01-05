@@ -66,7 +66,11 @@ bool Graphics::Init(HWND hwnd, int width, int height)
 	JUDGER(m_dxgiDupMgr.Init(m_device, m_dxgiAdapter));
 
 	// NV±‡¬Î≥ı ºªØ
-	m_nvenc.Init(m_device, m_deviceContext, 1920, 1080, "out/out.h264");
+	m_nvenc.Init(m_device, m_deviceContext, 
+		m_dxgiDupMgr.GetImageWidth(0), 
+		m_dxgiDupMgr.GetImageHeight(0), 
+		m_dxgiDupMgr.GetImageFormat(0),
+		"out/out.h264");
 	return true;
 }
 

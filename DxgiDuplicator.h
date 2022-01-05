@@ -24,7 +24,13 @@ public:
     UINT GetImageWidth(int idx) {
         DXGI_OUTDUPL_DESC desc;
         m_outputDupV[idx]->GetDesc(&desc);
-        return desc.ModeDesc.Height;
+        return desc.ModeDesc.Width;
+    }
+
+    DXGI_FORMAT GetImageFormat(int idx) {
+        DXGI_OUTDUPL_DESC desc;
+        m_outputDupV[idx]->GetDesc(&desc);
+        return desc.ModeDesc.Format;
     }
 
     ID3D11Texture2D* GetFrame(int idx, ID3D11DeviceContext* deviceContext);    
