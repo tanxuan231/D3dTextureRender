@@ -48,6 +48,12 @@
     <ClInclude Include="DxgiDuplicator.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Nvenc.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="exception.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="D3dTextureRender.cpp">
@@ -69,6 +75,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Common.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Nvenc.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="exception.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

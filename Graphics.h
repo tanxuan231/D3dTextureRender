@@ -3,6 +3,7 @@
 #include <d3d11.h>
 #include "TextureShader.h"
 #include "DxgiDuplicator.h"
+#include "Nvenc.h"
 
 class Graphics 
 {
@@ -30,6 +31,7 @@ private:
 private:
 	TextureShader* m_shader;
 	DXGIDupMgr m_dxgiDupMgr;
+	NvEnc m_nvenc;
 
 private:
 	IDXGISwapChain* m_swapChain;

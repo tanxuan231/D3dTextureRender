@@ -22,6 +22,8 @@ Graphics::~Graphics()
 
 void Graphics::DeInit()
 {
+	m_nvenc.DeInit();
+
 	DeInitColorShader();
 
 	DeInitDxgi();
@@ -60,9 +62,11 @@ bool Graphics::Init(HWND hwnd, int width, int height)
 
 	// DXGI抓图初始化
 	m_dxgiDupMgr.EnableCursorCap();
-	//m_dxgiDupMgr.EnableSave2File();
+	m_dxgiDupMgr.EnableSave2File();
 	JUDGER(m_dxgiDupMgr.Init(m_device, m_dxgiAdapter));
 
+	// NV编码初始化
+	m_nvenc.Init(m_device, m_deviceContext, 1920, 1080, "out/out.h264");
 	return true;
 }
 
@@ -230,7 +234,10 @@ bool Graphics::Render(int desktopId)
 	if (!desktop) {
 		//MessageBox(nullptr, L"Error GetFrame.", L"Error GetFrame.", MB_OK);
 		return true;
-	}	
+	}
+
+	// 编码
+	m_nvenc.EncodeFrame(desktop);
 
 	JUDGER(m_shader->Render(m_device, m_deviceContext, desktop));
 

@@ -232,8 +232,8 @@ void DXGIDupMgr::Save2File(int idx, ID3D11DeviceContext* deviceContext, ID3D11Te
     // 保持到文件
     static int index = 0;
     char fileName[MAX_PATH] = { 0 };
-    CreateDirectory(L"bmp", NULL);
-    sprintf_s(fileName, "bmp/%d_%d.bmp", idx, index++);
+    CreateDirectory(L"out/bmp", NULL);
+    sprintf_s(fileName, "out/bmp/%d_%d.bmp", idx, index++);
     saveBitmap(destImage, rowPitch, GetImageHeight(idx), fileName);
 
     delete [] destImage;
