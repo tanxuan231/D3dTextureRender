@@ -10,6 +10,8 @@ class NvEnc
 public:
 	NvEnc();
 	~NvEnc();
+
+	void enable(bool flag);
 	bool Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext,
 		uint32_t width, uint32_t height, DXGI_FORMAT inputFormat, std::string outFilePath);
 	void DeInit();
@@ -29,6 +31,7 @@ private:
 	bool CreateOutputBuffer();
 	bool DestoryOutputBuffer();
 private:
+	bool m_enableFlag;
 	std::ofstream m_outputFile;
 	NV_ENCODE_API_FUNCTION_LIST m_funList;
 	void* m_encoder;

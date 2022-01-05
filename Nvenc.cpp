@@ -14,9 +14,17 @@ NvEnc::~NvEnc()
 
 }
 
+void NvEnc::enable(bool flag)
+{
+    m_enableFlag = flag;
+}
+
 bool NvEnc::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
     uint32_t width, uint32_t height, DXGI_FORMAT inputFormat, std::string outFilePath)
 {
+    if (!m_enableFlag)
+        return true;
+
     if (!device || !deviceContext || width == 0 || height == 0) {
         return false;
     }
@@ -45,6 +53,9 @@ bool NvEnc::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext,
 
 void NvEnc::DeInit()
 {
+    if (!m_enableFlag)
+        return;
+
     UnRegisterResource();
     DestoryInputBuffer();
     DestoryOutputBuffer();
@@ -206,6 +217,9 @@ bool NvEnc::DestoryOutputBuffer()
 
 bool NvEnc::EncodeFrame(void* frame)
 {
+    if (!m_enableFlag)
+        return true;
+
     ID3D11Texture2D* frameTex = (ID3D11Texture2D*)frame;
     // 拷贝数据到输入缓冲
     //m_deviceContext->CopyResource(m_inputTexture, frameTex);

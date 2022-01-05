@@ -149,7 +149,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    }
 
    g_hWnd = hWnd;
-   ShowWindow(hWnd, SW_MINIMIZE);
+   ShowWindow(hWnd, nCmdShow /*SW_MINIMIZE*/);
    UpdateWindow(hWnd);
 
    return TRUE;

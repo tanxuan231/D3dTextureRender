@@ -62,9 +62,11 @@ bool Graphics::Init(HWND hwnd, int width, int height)
 
 	// DXGI抓图初始化
 	m_dxgiDupMgr.EnableCursorCap();
-	m_dxgiDupMgr.EnableSave2File();
+	//m_dxgiDupMgr.EnableSave2File();
 	JUDGER(m_dxgiDupMgr.Init(m_device, m_dxgiAdapter));
 
+	// 编码开关
+	m_nvenc.enable(false);
 	// NV编码初始化
 	m_nvenc.Init(m_device, m_deviceContext, 
 		m_dxgiDupMgr.GetImageWidth(0), 
