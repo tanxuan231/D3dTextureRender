@@ -2,7 +2,7 @@
 //
 #include "DxgiDuplicator.h"
 #include "Common.h"
-#include <iostream>
+#include "log.h"
 
 #pragma comment(lib, "DXGI.lib")
 
@@ -38,7 +38,7 @@ DXGIDupMgr::~DXGIDupMgr()
 bool DXGIDupMgr::Init(ID3D11Device* device, IDXGIAdapter* dxgiAdapter)
 {
     JUDGER(InitOutput(0, device, dxgiAdapter));
-    JUDGER(InitOutput(1, device, dxgiAdapter));
+    //JUDGER(InitOutput(1, device, dxgiAdapter));
 
     return true;
 }
@@ -49,7 +49,7 @@ bool DXGIDupMgr::InitOutput(int monitorIdx, ID3D11Device* device, IDXGIAdapter* 
     IDXGIOutput* dxgiOutput;
     HRESULT hr = dxgiAdapter->EnumOutputs(monitorIdx, &dxgiOutput);
     if (FAILED(hr)) {
-        cout << "failed for get EnumOutputs" << endl;
+        Log(LOG_ERROR, "failed for get EnumOutputs");
         return false;
     }     
     m_dxgiOutputV.emplace_back(dxgiOutput);
@@ -58,7 +58,7 @@ bool DXGIDupMgr::InitOutput(int monitorIdx, ID3D11Device* device, IDXGIAdapter* 
     IDXGIOutput1* dxgiOutput1;
     hr = dxgiOutput->QueryInterface(__uuidof(IDXGIOutput1), reinterpret_cast<void**>(&dxgiOutput1));
     if (FAILED(hr)) {
-        cout << "failed for get IDXGIOutput1" << endl;
+        Log(LOG_ERROR, "failed for get IDXGIOutput1");
         return false;
     }
     m_dxgiOutput1V.emplace_back(dxgiOutput1);
@@ -67,9 +67,9 @@ bool DXGIDupMgr::InitOutput(int monitorIdx, ID3D11Device* device, IDXGIAdapter* 
     IDXGIOutputDuplication* outputDup;
     hr = dxgiOutput1->DuplicateOutput(device, &outputDup);
     if (FAILED(hr)) {
-        cout << "failed for DuplicateOutput" << endl;
+        Log(LOG_ERROR, "failed for DuplicateOutput");
         if (hr == DXGI_ERROR_NOT_CURRENTLY_AVAILABLE) {
-            cout << "DXGI_ERROR_NOT_CURRENTLY_AVAILABLE" << endl;
+            Log(LOG_ERROR, "DXGI_ERROR_NOT_CURRENTLY_AVAILABLE");
         }
         return false;
     }
@@ -102,7 +102,7 @@ bool DXGIDupMgr::CreateTexture(ID3D11Device* device, UINT width, UINT height, DX
     texture2dDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
     texture2dDesc.BindFlags = 0;
     texture2dDesc.MiscFlags = 0;
-    texture2dDesc.Usage = D3D11_USAGE_STAGING;
+    texture2dDesc.Usage = D3D11_USAGE_STAGING;  // 中转纹理
 
     HRESULT hr = device->CreateTexture2D(&texture2dDesc, NULL, &texture2d);
     if (FAILED(hr)) {
@@ -110,11 +110,18 @@ bool DXGIDupMgr::CreateTexture(ID3D11Device* device, UINT width, UINT height, DX
     }
     m_texture2dV.emplace_back(texture2d);
 
-    texture2dDesc.CPUAccessFlags = 0;
-    texture2dDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET;
+    // 当设置为D3D11_RESOURCE_MISC_GDI_COMPATIBLE后，
+    // BindFlags必须为D3D11_BIND_RENDER_TARGET 
+    // Usage必须具备GPU读写即D3D11_USAGE_DEFAULT
+    // 不能有多重采样，格式有要求
     texture2dDesc.MiscFlags = D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
+    texture2dDesc.CPUAccessFlags = 0;
+    texture2dDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
     texture2dDesc.Usage = D3D11_USAGE_DEFAULT;
-    
+    texture2dDesc.SampleDesc.Count = 1;
+    texture2dDesc.SampleDesc.Quality = 0;    
+    texture2dDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+
     hr = device->CreateTexture2D(&texture2dDesc, NULL, &m_cursorTex);
     if (FAILED(hr)) {
         return false;
@@ -130,15 +137,15 @@ ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContex
     IDXGIResource* idxgiRes;
     HRESULT hr = m_outputDupV[idx]->AcquireNextFrame(500, &frameInfo, &idxgiRes);
     if (FAILED(hr)) {
-        printf("failed for AcquireNextFrame: %x\n", hr);
+        Log(LOG_ERROR, "failed for AcquireNextFrame: %x", hr);
         if (hr == DXGI_ERROR_ACCESS_LOST)
-            cout << "DXGI_ERROR_ACCESS_LOST" << endl;
+            Log(LOG_ERROR, "DXGI_ERROR_WAIT_TIMEOUT");
         if (hr == DXGI_ERROR_INVALID_CALL)
-            cout << "DXGI_ERROR_INVALID_CALL " << endl;
+            Log(LOG_ERROR, "DXGI_ERROR_WAIT_TIMEOUT");
         if (hr == E_INVALIDARG)
-            cout << "E_INVALIDARG  " << endl;
+            Log(LOG_ERROR, "DXGI_ERROR_WAIT_TIMEOUT");
         if (hr == DXGI_ERROR_WAIT_TIMEOUT) {
-            cout << "DXGI_ERROR_WAIT_TIMEOUT  " << endl;
+            Log(LOG_ERROR, "DXGI_ERROR_WAIT_TIMEOUT");
             return nullptr;
         }
         return nullptr;
@@ -149,9 +156,12 @@ ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContex
     // 【资源释放】9.1 查询到数据后，释放IDXG资源
     idxgiRes->Release();
     if (FAILED(hr)) {
-        cout << "failed for get desktopTexture2d" << endl;
+        Log(LOG_ERROR, "failed for get desktopTexture2d");
         return nullptr;
     }
+
+    D3D11_TEXTURE2D_DESC desktopDesc;
+    desktopTexture2d->GetDesc(&desktopDesc);
 
     // 8. 将桌面图像拷贝出来
     // 8.2 复制纹理(GPU间复制)    

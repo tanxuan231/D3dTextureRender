@@ -4,6 +4,7 @@
 #include "framework.h"
 #include "D3dTextureRender.h"
 #include "Graphics.h"
+#include "log.h"
 
 #define MAX_LOADSTRING 100
 
@@ -33,6 +34,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     LoadStringW(hInstance, IDC_D3DTEXTURERENDER, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
+    InitSpdLog("out/log/log.txt", BLOG_ALL, BLOG_LEVEL_TRACE);
+
+    Log(LOG_INFO, "================= WinMain start ==================");
+
     // 执行应用程序初始化:
     if (!InitInstance (hInstance, nCmdShow))
     {
@@ -44,7 +49,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     Graphics* graphics = new Graphics();
 
     if (!graphics->Init(g_hWnd, 800, 600)) {
-        MessageBox(g_hWnd, L"Error Graphics Init.", L"Error Graphics Init.", MB_OK);
+        Log(LOG_ERROR, "get desktop frame failed");        
         return FALSE;
     }
 
@@ -76,6 +81,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
     
     delete graphics;
+    DeinitSpdLog();
     return (int) msg.wParam;
 }
 
@@ -83,10 +89,8 @@ bool RenderFrame(Graphics* graphics, int desktopId)
 {
     graphics->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
     if (!graphics->Render(desktopId)) {
-        static int index = 0;
-        if (index++ >= 3)
-            return false;
-        MessageBox(g_hWnd, L"Error Graphics Render.", L"Error Graphics Render.", MB_OK);
+        Log(LOG_ERROR, "Graphics Render failed");
+        return false;
     }
     graphics->EndScene();
 

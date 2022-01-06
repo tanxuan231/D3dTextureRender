@@ -1,5 +1,6 @@
 #include "Graphics.h"
 #include "Common.h"
+#include "log.h"
 
 #pragma comment(lib, "d3d11.lib")
 
@@ -106,7 +107,7 @@ bool Graphics::CreateDeviceAndSwapChain(HWND hwnd, int width, int height)
 	swapChainDesc.BufferDesc.Width = width;
 	swapChainDesc.BufferDesc.Height = height;
 
-	// 为后台缓冲区设置常规的 32 位表面。
+	// 为后台缓冲区设置常规的32位表面。
 	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	// 设置刷新率，设置让系统尽快刷新
@@ -238,13 +239,14 @@ bool Graphics::Render(int desktopId)
 
 	ID3D11Texture2D* desktop = m_dxgiDupMgr.GetFrame(desktopId, m_deviceContext);
 	if (!desktop) {
-		//MessageBox(nullptr, L"Error GetFrame.", L"Error GetFrame.", MB_OK);
+		Log(LOG_ERROR, "get desktop frame failed");
 		return true;
 	}
 
 	// 编码
 	m_nvenc.EncodeFrame(desktop);
 
+	// 渲染
 	JUDGER(m_shader->Render(m_device, m_deviceContext, desktop));
 
 	return true;
