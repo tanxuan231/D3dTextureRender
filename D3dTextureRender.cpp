@@ -87,7 +87,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 bool RenderFrame(Graphics* graphics, int desktopId)
 {
-    graphics->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+    //graphics->BeginScene(1.0f, 0.0f, 0.0f, 1.0f);
     if (!graphics->Render(desktopId)) {
         Log(LOG_ERROR, "Graphics Render failed");
         return false;

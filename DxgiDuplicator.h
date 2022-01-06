@@ -33,7 +33,7 @@ public:
         return desc.ModeDesc.Format;
     }
 
-    ID3D11Texture2D* GetFrame(int idx, ID3D11DeviceContext* deviceContext);    
+    ID3D11Texture2D* GetFrame(int idx, ID3D11DeviceContext* deviceContext, bool& result);
 
 private:
     bool InitOutput(int monitorIdx, ID3D11Device* device, IDXGIAdapter* dxgiAdapter);    

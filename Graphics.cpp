@@ -237,9 +237,11 @@ bool Graphics::Render(int desktopId)
 {
 	m_deviceContext->OMSetRenderTargets(1u, &m_renderTargetView, nullptr);
 
-	ID3D11Texture2D* desktop = m_dxgiDupMgr.GetFrame(desktopId, m_deviceContext);
-	if (!desktop) {
-		Log(LOG_ERROR, "get desktop frame failed");
+	bool result;
+	ID3D11Texture2D* desktop = m_dxgiDupMgr.GetFrame(desktopId, m_deviceContext, result);
+	if (!result) {
+		return false;
+	} else if (!desktop) {		
 		return true;
 	}
 

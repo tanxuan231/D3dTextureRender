@@ -130,24 +130,26 @@ bool DXGIDupMgr::CreateTexture(ID3D11Device* device, UINT width, UINT height, DX
     return true;
 }
 
-ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContext)
+ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContext, bool& result)
 {
+    result = false;
     // 7. 获取桌面图像
     DXGI_OUTDUPL_FRAME_INFO frameInfo;
     IDXGIResource* idxgiRes;
-    HRESULT hr = m_outputDupV[idx]->AcquireNextFrame(500, &frameInfo, &idxgiRes);
+    HRESULT hr = m_outputDupV[idx]->AcquireNextFrame(1000, &frameInfo, &idxgiRes);
     if (FAILED(hr)) {
         Log(LOG_ERROR, "failed for AcquireNextFrame: %x", hr);
         if (hr == DXGI_ERROR_ACCESS_LOST)
-            Log(LOG_ERROR, "DXGI_ERROR_WAIT_TIMEOUT");
+            Log(LOG_ERROR, "DXGI_ERROR_ACCESS_LOST");
         if (hr == DXGI_ERROR_INVALID_CALL)
-            Log(LOG_ERROR, "DXGI_ERROR_WAIT_TIMEOUT");
+            Log(LOG_ERROR, "DXGI_ERROR_INVALID_CALL");
         if (hr == E_INVALIDARG)
-            Log(LOG_ERROR, "DXGI_ERROR_WAIT_TIMEOUT");
+            Log(LOG_ERROR, "E_INVALIDARG");
         if (hr == DXGI_ERROR_WAIT_TIMEOUT) {
             Log(LOG_ERROR, "DXGI_ERROR_WAIT_TIMEOUT");
+            result = true;
             return nullptr;
-        }
+        }        
         return nullptr;
     }
 
@@ -178,6 +180,7 @@ ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContex
 
     Save2File(idx, deviceContext, m_texture2dV[idx]);
 
+    result = true;
     return m_texture2dV[idx];
 }
 
@@ -216,24 +219,19 @@ void DXGIDupMgr::Save2File(int idx, ID3D11DeviceContext* deviceContext, ID3D11Te
     if (!m_save2file) {
         return;
     }
+    UINT height = GetImageHeight(idx);
 
-    int destSize = 1920*1080*4;
+    int destSize = height * GetImageWidth(idx) * 4;
     BYTE* destImage = new BYTE[destSize];
 
     // 8.3 纹理映射(GPU -> CPU)
     D3D11_MAPPED_SUBRESOURCE resource;
     UINT subresource = D3D11CalcSubresource(0, 0, 0);
     deviceContext->Map(texture, subresource, D3D11_MAP_READ, 0, &resource);
-
     if (!resource.pData) {
         return;
-    }
-
-    DXGI_OUTDUPL_DESC dxgiOutduplDesc;
-    m_outputDupV[idx]->GetDesc(&dxgiOutduplDesc);
-    UINT height = dxgiOutduplDesc.ModeDesc.Height;
+    }    
     UINT rowPitch = resource.RowPitch;   
-
     UINT size = height * resource.RowPitch;
     memcpy_s(destImage, destSize, reinterpret_cast<BYTE*>(resource.pData), size);
 
@@ -244,7 +242,7 @@ void DXGIDupMgr::Save2File(int idx, ID3D11DeviceContext* deviceContext, ID3D11Te
     char fileName[MAX_PATH] = { 0 };
     CreateDirectory(L"out/bmp", NULL);
     sprintf_s(fileName, "out/bmp/%d_%d.bmp", idx, index++);
-    saveBitmap(destImage, rowPitch, GetImageHeight(idx), fileName);
+    saveBitmap(destImage, rowPitch, height, fileName);
 
     delete [] destImage;
 }

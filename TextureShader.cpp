@@ -2,6 +2,7 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include "Common.h"
+#include "log.h"
 
 #pragma comment(lib, "D3DCompiler.lib")
 
@@ -373,11 +374,15 @@ bool TextureShader::UpdateTexture(ID3D11Device* device, ID3D11DeviceContext* dev
 	}
 
 	// 2. 拷贝图像数据到纹理（加载一次即可使用UpdateSubresource）
+#if 1
 	D3D11_MAPPED_SUBRESOURCE resource;
 	UINT subresource = D3D11CalcSubresource(0, 0, 0);
 	deviceContext->Map(desktopTex, subresource, D3D11_MAP_READ, 0, &resource);
 	deviceContext->UpdateSubresource(m_texture, 0, NULL, resource.pData, resource.RowPitch, 0);
 	deviceContext->Unmap(desktopTex, subresource);
+#else
+	deviceContext->CopyResource(m_texture, desktopTex);
+#endif
 
 	// 3. 为纹理创建着色器资源视图(注意：纹理BindFlags需要设置为D3D11_BIND_SHADER_RESOURCE)
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -446,7 +451,7 @@ void TextureShader::SetInfo(ID3D11DeviceContext* deviceContext)
 bool TextureShader::Render(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* desktopTex)
 {
 	if (!UpdateTexture(device, deviceContext, desktopTex)) {
-		MessageBox(nullptr, L"Error UpdateTexture.", L"Error UpdateTexture.", MB_OK);
+		Log(LOG_ERROR, "UpdateTexture failed");
 		return false;
 	}
 	
