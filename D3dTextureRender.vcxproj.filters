@@ -60,6 +60,9 @@
     <ClInclude Include="singleton.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="cursorHelp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="D3dTextureRender.cpp">
@@ -90,6 +93,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="log.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cursorHelp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

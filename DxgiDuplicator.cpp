@@ -1,6 +1,7 @@
 ﻿// DxgiDuplicator.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //
 #include "DxgiDuplicator.h"
+#include "cursorHelp.h"
 #include "Common.h"
 #include "log.h"
 
@@ -130,7 +131,7 @@ bool DXGIDupMgr::CreateTexture(ID3D11Device* device, UINT width, UINT height, DX
     return true;
 }
 
-ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContext, bool& result)
+ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11Device* device, ID3D11DeviceContext* deviceContext, bool& result)
 {
     result = false;
     // 7. 获取桌面图像
@@ -159,11 +160,46 @@ ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContex
     idxgiRes->Release();
     if (FAILED(hr)) {
         Log(LOG_ERROR, "failed for get desktopTexture2d");
+        m_outputDupV[idx]->ReleaseFrame();
         return nullptr;
     }
 
     D3D11_TEXTURE2D_DESC desktopDesc;
     desktopTexture2d->GetDesc(&desktopDesc);
+
+    if (false && m_obsTex == nullptr) {
+        // 需要创建与抓取的桌面一样大小的纹理
+        D3D11_TEXTURE2D_DESC texture2dDesc;
+        texture2dDesc.Width = desktopDesc.Width;
+        texture2dDesc.Height = desktopDesc.Height;
+        texture2dDesc.Format = DXGI_FORMAT_B8G8R8A8_TYPELESS;
+        texture2dDesc.MipLevels = 1;
+        texture2dDesc.ArraySize = 1;
+        texture2dDesc.SampleDesc.Count = 1;
+        texture2dDesc.SampleDesc.Quality = 0;
+        texture2dDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        texture2dDesc.CPUAccessFlags = 0;
+        texture2dDesc.Usage = D3D11_USAGE_DEFAULT;
+        texture2dDesc.MiscFlags = 0;
+        hr = device->CreateTexture2D(&texture2dDesc, NULL, &m_obsTex);
+        if (FAILED(hr)) {
+            return nullptr;
+        }
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+        srvDesc.Format = texture2dDesc.Format;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        srvDesc.Texture2D.MipLevels = 1;
+
+        // 为纹理创建着色器资源视图
+        hr = device->CreateShaderResourceView(m_obsTex, &srvDesc, &m_obsTexView);
+        if (FAILED(hr)) {
+            return nullptr;
+        }
+
+        deviceContext->CopyResource(m_obsTex, desktopTexture2d);
+    }    
 
     // 8. 将桌面图像拷贝出来
     // 8.2 复制纹理(GPU间复制)    
@@ -171,14 +207,15 @@ ID3D11Texture2D* DXGIDupMgr::GetFrame(int idx, ID3D11DeviceContext* deviceContex
     // 【资源释放】9.2 拷贝完数据后，释放桌面纹理
     desktopTexture2d->Release();
 
-    DrawCursor();
+    Cursor2Texture(device, deviceContext);
+    DrawCursor();    
 
     deviceContext->CopyResource(m_texture2dV[idx], m_cursorTex);
 
     // 【资源释放】9.3 需要释放帧，对应AcquireNextFrame
     m_outputDupV[idx]->ReleaseFrame();
 
-    Save2File(idx, deviceContext, m_texture2dV[idx]);
+    SaveTex2File(idx, deviceContext, m_texture2dV[idx], GetImageWidth(idx), GetImageHeight(idx));
 
     result = true;
     return m_texture2dV[idx];
@@ -210,18 +247,100 @@ bool DXGIDupMgr::DrawCursor()
             hr = surface->ReleaseDC(nullptr);
         }
     }
-
+    
     return true;
 }
 
-void DXGIDupMgr::Save2File(int idx, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture)
+bool DXGIDupMgr::Cursor2Texture(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
-    if (!m_save2file) {
+    CURSORINFO cursorInfo = { 0 };
+    cursorInfo.cbSize = sizeof(cursorInfo);
+
+    if (!GetCursorInfo(&cursorInfo)) {
+        return false;
+    }
+
+    HICON icon = CopyIcon(cursorInfo.hCursor);
+    ICONINFO iconInfo;
+    if (!GetIconInfo(icon, &iconInfo)) {
+        return false;
+    }
+
+    bool ret = true;
+    do {
+        uint32_t width;
+        uint32_t height;
+        uint8_t* bitmap = cursor_capture_icon_bitmap(&iconInfo, &width, &height);
+        if (!bitmap) {
+            ret = false;
+            break;
+        }
+
+        if (m_cursorTexture == nullptr) {
+            D3D11_TEXTURE2D_DESC texture2dDesc;
+            texture2dDesc.Width = width;
+            texture2dDesc.Height = height;
+            texture2dDesc.Format = DXGI_FORMAT_B8G8R8A8_TYPELESS;
+            texture2dDesc.MipLevels = 1;
+            texture2dDesc.ArraySize = 1;
+            texture2dDesc.SampleDesc.Count = 1;
+            texture2dDesc.SampleDesc.Quality = 0;
+            texture2dDesc.MiscFlags = 0;
+#if 1
+            texture2dDesc.BindFlags = 0;
+            // 该纹理数据从CPU拷贝而来，需要D3D11_CPU_ACCESS_WRITE属性
+            // 另外，它还要拷贝到CPU里去，需要D3D11_CPU_ACCESS_READ属性
+            texture2dDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
+            texture2dDesc.Usage = D3D11_USAGE_STAGING;  // CPU <=> GPU            
+            HRESULT hr = device->CreateTexture2D(&texture2dDesc, NULL, &m_cursorTexture);
+            if (FAILED(hr)) {
+                return false;
+            }
+#else
+            // 该纹理数据从CPU拷贝而来，需要D3D11_CPU_ACCESS_WRITE属性
+            // 另外，它需要进行渲染，需要绑定渲染管线，需要D3D11_BIND_SHADER_RESOURCE属性
+            texture2dDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+            texture2dDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+            texture2dDesc.Usage = D3D11_USAGE_DYNAMIC;  // CPU => GPU             
+            D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+            srvDesc.Format = texture2dDesc.Format;
+            srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture2D.MostDetailedMip = 0;
+            srvDesc.Texture2D.MipLevels = 1;
+
+            // 为纹理创建着色器资源视图
+            hr = device->CreateShaderResourceView(m_cursorTexture, &srvDesc, &m_cursorTextureView);
+            if (FAILED(hr)) {
+                return false;
+            }
+#endif
+        }
+
+        uint32_t lineSize = width * 4;
+
+        D3D11_MAPPED_SUBRESOURCE resource;
+        UINT subresource = D3D11CalcSubresource(0, 0, 0);
+        deviceContext->Map(m_cursorTexture, subresource, D3D11_MAP_READ_WRITE, 0, &resource);
+        uint32_t copySize = lineSize > resource.RowPitch ? resource.RowPitch : lineSize;
+        memcpy_s(resource.pData, copySize * height, bitmap, width*height*4);        
+        deviceContext->Unmap(m_cursorTexture, subresource);
+
+        SaveTex2File(222, deviceContext, m_cursorTexture, width, height);
+    } while (false);
+
+    DeleteObject(iconInfo.hbmColor);
+    DeleteObject(iconInfo.hbmMask);
+
+    return ret;
+}
+
+void DXGIDupMgr::SaveTex2File(int idx, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture, UINT width, UINT height, bool force)
+{
+    if (!force && !m_save2file) {
         return;
     }
-    UINT height = GetImageHeight(idx);
 
-    int destSize = height * GetImageWidth(idx) * 4;
+    int destSize = height * width * 4;
     BYTE* destImage = new BYTE[destSize];
 
     // 8.3 纹理映射(GPU -> CPU)

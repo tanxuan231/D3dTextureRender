@@ -238,7 +238,7 @@ bool Graphics::Render(int desktopId)
 	m_deviceContext->OMSetRenderTargets(1u, &m_renderTargetView, nullptr);
 
 	bool result;
-	ID3D11Texture2D* desktop = m_dxgiDupMgr.GetFrame(desktopId, m_deviceContext, result);
+	ID3D11Texture2D* desktop = m_dxgiDupMgr.GetFrame(desktopId, m_device, m_deviceContext, result);
 	if (!result) {
 		return false;
 	} else if (!desktop) {		

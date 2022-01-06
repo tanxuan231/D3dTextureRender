@@ -143,6 +143,7 @@
   <ItemGroup>
     <ClInclude Include="ColorShader.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="cursorHelp.h" />
     <ClInclude Include="D3dTextureRender.h" />
     <ClInclude Include="DxgiDuplicator.h" />
     <ClInclude Include="exception.h" />
@@ -159,6 +160,7 @@
   <ItemGroup>
     <ClCompile Include="ColorShader.cpp" />
     <ClCompile Include="Common.cpp" />
+    <ClCompile Include="cursorHelp.cpp" />
     <ClCompile Include="D3dTextureRender.cpp" />
     <ClCompile Include="DxgiDuplicator.cpp" />
     <ClCompile Include="exception.cpp" />
