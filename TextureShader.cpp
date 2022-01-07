@@ -184,8 +184,8 @@ bool TextureShader::CreateInputLayout(ID3D11Device* device)
 	// 创建顶点数据布局
 	const D3D11_INPUT_ELEMENT_DESC inputElementDescs[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },	// float4类型
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0 },	// float2类型
+		{ "myPOSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },	// float4类型
+		{ "myTEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0 },	// float2类型
 	};
 
 	HRESULT hr = device->CreateInputLayout(
@@ -240,8 +240,15 @@ bool TextureShader::CreateVetexInfo(ID3D11Device* device)
 		{1.0f, 1.0f, 0.0f, 1.0f, 0.0f},		// 右上角
 		{1.0f, -1.0f, 0.0f, 1.0f, 1.0f},	// 右下角
 		{-1.0f, 1.0f, 0.0f, 0.0f, 0.0f}		// 左上角
-	};	
-
+	};
+/*
+	VertexType vertexs[] = {
+		{-1.0f, -1.0f, 0.0f, 0.0f, 1.0f},	// 左下角
+		{0.0f, 0.0f, 0.0f, 1.0f, 0.0f},		// 右上角
+		{0.0f, -1.0f, 0.0f, 1.0f, 1.0f},	// 右下角
+		{-1.0f, 0.0f, 0.0f, 0.0f, 0.0f}		// 左上角
+	};
+*/
 	// 2. 顶点索引集合
 	unsigned int indices[] = {
 		0, 1, 2,	// 第一个三角形（左下顶点起顺时针）

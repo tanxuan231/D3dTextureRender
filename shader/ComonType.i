@@ -17,13 +17,13 @@ struct PinputType
 // 顶点着色器输入结构
 struct tVinputType
 {
-	float4 position : POSITION;	// 顶点位置
-	float2 tex : TEXCOORD0;		// 纹理坐标
+	float4 position : myPOSITION;	// 顶点位置(x/y/z/w)
+	float2 tex : myTEXCOORD;		// 纹理坐标(u/v)
 };
 
 // 像素着色器输入结构
 struct tPinputtype
 {
 	float4 position : SV_POSITION;	// 位置。SV_POSITION像素着色器内部变量
-	float2 tex : TEXCOORD0;			// 纹理坐标
+	float2 tex : myTEXCOORD;			// 纹理坐标
 };
