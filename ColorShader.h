@@ -50,6 +50,8 @@ private:
 	bool CreateInputLayout(ID3D11Device* device);
 	bool CreateConstantBuffer(ID3D11Device* device);
 	
+	bool CreateTransformationMatrix(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float angle);
+
 	bool CreateVetexInfo(ID3D11Device* device);
 	void SetInfo(ID3D11DeviceContext* deviceContext);
 	bool SetInputAssemblerInfo(ID3D11DeviceContext* deviceContext);
@@ -67,4 +69,6 @@ private:
 
 	ID3D11Buffer* m_vertexBuffer;
 	ID3D11Buffer* m_indexBuffer;
+
+	ID3D11Buffer* m_transBuffer;
 };

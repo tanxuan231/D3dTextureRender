@@ -2,6 +2,7 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include "Common.h"
+#include <cmath>
 
 #pragma comment(lib, "D3DCompiler.lib")
 
@@ -67,6 +68,8 @@ bool ColorShader::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext,
 	JUDGER(CompileShader(vsFilename, psFilename));
 	JUDGER(CreateShader(device));
 	JUDGER(CreateInputLayout(device));
+
+	JUDGER(CreateTransformationMatrix(device, deviceContext, 45.0));
 
 	JUDGER(CreateVetexInfo(device));
 	SetInfo(deviceContext);
@@ -144,6 +147,40 @@ bool ColorShader::CreateConstantBuffer(ID3D11Device* device)
 	if (FAILED(hr)) {
 		return false;
 	}
+
+	return true;
+}
+
+bool ColorShader::CreateTransformationMatrix(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float angle)
+{
+	struct TransBuffer
+	{
+		float element[4][4];
+	};
+	const TransBuffer tb = {
+		std::cos(angle), std::sin(angle), 0.0f, 0.0f,
+		-std::sin(angle), std::cos(angle), 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f,
+	};
+
+	D3D11_BUFFER_DESC bufferDesc = {};
+	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc.ByteWidth = sizeof(tb);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA srd = {};
+	srd.pSysMem = &tb;
+
+	HRESULT hr = device->CreateBuffer(&bufferDesc, &srd, &m_transBuffer);
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	deviceContext->VSSetConstantBuffers(0, 1, &m_transBuffer);
 
 	return true;
 }
