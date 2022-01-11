@@ -2,8 +2,11 @@
 #include <Windows.h>
 #include <d3d11.h>
 #include "TextureShader.h"
+#include "ColorShader.h"
 #include "DxgiDuplicator.h"
 #include "Nvenc.h"
+
+//#define USE_TEXTURE
 
 class Graphics 
 {
@@ -29,7 +32,12 @@ private:
 	bool InitShader();
 
 private:
+#ifdef  USE_TEXTURE
 	TextureShader* m_shader;
+#else
+	ColorShader* m_shader;
+#endif
+
 	DXGIDupMgr m_dxgiDupMgr;
 	NvEnc m_nvenc;
 

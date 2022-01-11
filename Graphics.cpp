@@ -88,9 +88,14 @@ void Graphics::DeInitColorShader()
 
 bool Graphics::InitShader()
 {
+#ifdef  USE_TEXTURE
 	m_shader = new TextureShader();
 	m_shader->SetTextureDataFile("data/stone.tga");
 	return m_shader->Init(m_device, m_deviceContext, L"shader/Texture.vs", L"shader/Texture.ps");
+#else
+	m_shader = new ColorShader();
+	return m_shader->Init(m_device, m_deviceContext, L"shader/Color.vs", L"shader/Color.ps");
+#endif	
 }
 
 bool Graphics::CreateDeviceAndSwapChain(HWND hwnd, int width, int height)
@@ -237,6 +242,7 @@ bool Graphics::Render(int desktopId)
 {
 	m_deviceContext->OMSetRenderTargets(1u, &m_renderTargetView, nullptr);
 
+#ifdef  USE_TEXTURE
 	bool result;
 	ID3D11Texture2D* desktop = m_dxgiDupMgr.GetFrame(desktopId, m_device, m_deviceContext, result);
 	if (!result) {
@@ -250,6 +256,8 @@ bool Graphics::Render(int desktopId)
 
 	// äÖÈ¾
 	JUDGER(m_shader->Render(m_device, m_deviceContext, desktop));
-
+#else
+	m_shader->Render(m_deviceContext);
+#endif
 	return true;
 }

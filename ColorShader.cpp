@@ -155,6 +155,9 @@ bool ColorShader::CreateInputLayout(ID3D11Device* device)
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		// 如果用unsigned char定义颜色，比如r = 255，可以使用如下的格式，而不是DXGI_FORMAT_R8G8B8A8_UINT
+		// 因为着色器需要接收浮点型，UNORM可以归一化数据
+		// { "COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	HRESULT hr = device->CreateInputLayout(
@@ -179,16 +182,21 @@ bool ColorShader::CreateVetexInfo(ID3D11Device* device)
 {
 	// 1. 顶点集合	
 	VertexType vertexs[] = {
-		{-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-		{1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-		{1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},	
-		{-1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}
-	};	
+		//    顶点          |      颜色
+		{-0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+		{-0.25f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+		{0.25f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+		{0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+		{0.25f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+		{-0.25f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	};
 
 	// 2. 顶点索引集合
 	unsigned int indices[] = {
-		0, 1, 2,	// 第一个三角形（左下顶点起顺时针）
-		0, 3, 1		// 第二个三角形
+		0, 2, 1,	// 顺时针转，形成三角形
+		0, 3, 2,
+		0, 4, 3, 
+		0, 5, 4
 	};
 
 	m_indicesCount = sizeof(indices) / sizeof(indices[0]);
