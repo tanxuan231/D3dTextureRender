@@ -69,7 +69,7 @@ bool ColorShader::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext,
 	JUDGER(CreateShader(device));
 	JUDGER(CreateInputLayout(device));
 
-	JUDGER(CreateTransformationMatrix(device, deviceContext, 45.0));
+	JUDGER(CreateTransforBuffer(device, deviceContext));
 
 	JUDGER(CreateVetexInfo(device));
 	SetInfo(deviceContext);
@@ -151,12 +151,28 @@ bool ColorShader::CreateConstantBuffer(ID3D11Device* device)
 	return true;
 }
 
-bool ColorShader::CreateTransformationMatrix(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float angle)
+bool ColorShader::CreateTransforBuffer(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
-	struct TransBuffer
-	{
-		float element[4][4];
-	};
+	D3D11_BUFFER_DESC bufferDesc = {};
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(TransBuffer);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = 0;
+
+	HRESULT hr = device->CreateBuffer(&bufferDesc, NULL, &m_transBuffer);
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	deviceContext->VSSetConstantBuffers(0, 1, &m_transBuffer);
+
+	return true;
+}
+
+bool ColorShader::UpdateTransforMatrix(ID3D11DeviceContext* deviceContext, float angle)
+{
 	const TransBuffer tb = {
 		std::cos(angle), std::sin(angle), 0.0f, 0.0f,
 		-std::sin(angle), std::cos(angle), 0.0f, 0.0f,
@@ -164,23 +180,19 @@ bool ColorShader::CreateTransformationMatrix(ID3D11Device* device, ID3D11DeviceC
 		0.0f, 0.0f, 0.0f, 1.0f,
 	};
 
-	D3D11_BUFFER_DESC bufferDesc = {};
-	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	bufferDesc.ByteWidth = sizeof(tb);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	bufferDesc.MiscFlags = 0;
-	bufferDesc.StructureByteStride = 0;
+	deviceContext->UpdateSubresource(m_transBuffer, 0, NULL, &tb, 0, 0);
 
-	D3D11_SUBRESOURCE_DATA srd = {};
-	srd.pSysMem = &tb;
-
-	HRESULT hr = device->CreateBuffer(&bufferDesc, &srd, &m_transBuffer);
-	if (FAILED(hr)) {
-		return false;
-	}
-
-	deviceContext->VSSetConstantBuffers(0, 1, &m_transBuffer);
+	// 如下方式获取的pData为空
+	//UINT subresource = D3D11CalcSubresource(0, 0, 0);
+	//D3D11_MAPPED_SUBRESOURCE mapedRes = {};
+	//HRESULT hr = deviceContext->Map(m_transBuffer, subresource, D3D11_MAP_WRITE, 0, &mapedRes);
+	//if (!mapedRes.pData) {
+	//	deviceContext->Unmap(m_transBuffer, subresource);
+	//	return false;
+	//}
+	//mapedRes.pData = (void*)&tb;
+	//mapedRes.RowPitch = sizeof(tb);
+	//deviceContext->Unmap(m_transBuffer, subresource);
 
 	return true;
 }
@@ -318,5 +330,7 @@ void ColorShader::SetInfo(ID3D11DeviceContext* deviceContext)
 void ColorShader::Render(ID3D11DeviceContext* deviceContext)
 {
 	// Render the triangle.
+	static int index = 0;
+	UpdateTransforMatrix(deviceContext, 45.0f + index++);
 	deviceContext->DrawIndexed(m_indicesCount, 0, 0);
 }

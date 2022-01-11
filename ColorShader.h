@@ -33,6 +33,11 @@ class ColorShader : public ShaderHelp
 		} Color;
 	};
 
+	struct TransBuffer
+	{
+		float element[4][4];
+	};
+
 public:
 	ColorShader();
 	~ColorShader();
@@ -50,7 +55,8 @@ private:
 	bool CreateInputLayout(ID3D11Device* device);
 	bool CreateConstantBuffer(ID3D11Device* device);
 	
-	bool CreateTransformationMatrix(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float angle);
+	bool CreateTransforBuffer(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+	bool UpdateTransforMatrix(ID3D11DeviceContext* deviceContext, float angle);
 
 	bool CreateVetexInfo(ID3D11Device* device);
 	void SetInfo(ID3D11DeviceContext* deviceContext);
