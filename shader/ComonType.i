@@ -3,7 +3,7 @@
 struct VinputType
 {
 	float4 position : POSITION;	// 顶点位置
-	float4 color : COLOR;		// 顶点颜色
+	float4 color : COLOR1;		// 顶点颜色，1为自定义的语义索引
 };
 
 // 定义顶点着色器的输出结构体/像素着色器的输入结构
