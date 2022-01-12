@@ -13,6 +13,7 @@ HINSTANCE hInst;                                // 当前实例
 WCHAR szTitle[MAX_LOADSTRING];                  // 标题栏文本
 WCHAR szWindowClass[MAX_LOADSTRING];            // 主窗口类名
 HWND g_hWnd;
+Graphics* g_graphics;
 
 // 此代码模块中包含的函数的前向声明:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -87,7 +88,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 bool RenderFrame(Graphics* graphics, int desktopId)
 {
-    graphics->BeginScene(1.0f, 0.0f, 0.0f, 1.0f);
+    graphics->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
     if (!graphics->Render(desktopId)) {
         Log(LOG_ERROR, "Graphics Render failed");
         return false;
@@ -196,6 +197,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             HDC hdc = BeginPaint(hWnd, &ps);
             // TODO: 在此处添加使用 hdc 的任何绘图代码...
             EndPaint(hWnd, &ps);
+        }
+        break;
+    case WM_SIZE:
+        if (g_graphics) {
+            g_graphics->OnResize(LOWORD(lParam), HIWORD(lParam));
         }
         break;
     case WM_DESTROY:

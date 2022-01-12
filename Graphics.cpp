@@ -61,6 +61,10 @@ bool Graphics::Init(HWND hwnd, int width, int height)
 	SetViewports(width, height);
 	JUDGER(InitShader());
 
+#ifndef  USE_TEXTURE
+	m_shader->CreateMatrix(width, height);
+#endif
+
 	// DXGI×¥Í¼³õÊ¼»¯
 	m_dxgiDupMgr.EnableCursorCap();
 	//m_dxgiDupMgr.EnableSave2File();
@@ -74,6 +78,8 @@ bool Graphics::Init(HWND hwnd, int width, int height)
 		m_dxgiDupMgr.GetImageHeight(0), 
 		m_dxgiDupMgr.GetImageFormat(0),
 		"out/out.h264");
+
+	m_initOver = true;
 	return true;
 }
 
@@ -260,4 +266,16 @@ bool Graphics::Render(int desktopId)
 	m_shader->Render(m_deviceContext);
 #endif
 	return true;
+}
+
+void Graphics::OnResize(int width, int height)
+{
+	if (!m_initOver) {
+		return;
+	}
+
+#ifndef  USE_TEXTURE
+	m_shader->CreateMatrix(width, height);
+#endif
+	SetViewports(width, height);
 }

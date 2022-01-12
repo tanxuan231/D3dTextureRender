@@ -6,6 +6,8 @@
 
 #pragma comment(lib, "D3DCompiler.lib")
 
+using namespace DirectX;
+
 ColorShader::ColorShader()
 {
 	m_vertexShaderBuffer = nullptr;
@@ -69,7 +71,9 @@ bool ColorShader::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext,
 	JUDGER(CreateShader(device));
 	JUDGER(CreateInputLayout(device));
 
-	JUDGER(CreateTransforBuffer(device, deviceContext));
+	//JUDGER(CreateTransforBuffer(device, deviceContext));
+
+	JUDGER(CreateConstantBuffer(device, deviceContext));
 
 	JUDGER(CreateVetexInfo(device));
 	SetInfo(deviceContext);
@@ -197,6 +201,25 @@ bool ColorShader::UpdateTransforMatrix(ID3D11DeviceContext* deviceContext, float
 	return true;
 }
 
+bool ColorShader::CreateConstantBuffer(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+{
+	D3D11_BUFFER_DESC bufferDesc = {};
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(ConstantBuffer);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = 0;
+
+	HRESULT hr = device->CreateBuffer(&bufferDesc, NULL, &m_constantBuffer);
+	if (FAILED(hr)) {
+		return false;
+	}	
+
+	deviceContext->VSSetConstantBuffers(0, 1, &m_constantBuffer);
+	return true;
+}
+
 bool ColorShader::CreateInputLayout(ID3D11Device* device)
 {
 	// 创建顶点数据布局
@@ -227,24 +250,95 @@ bool ColorShader::CreateInputLayout(ID3D11Device* device)
 	return true;
 }
 
+void ColorShader::CreateMatrix(int width, int height)
+{
+	m_width = width;
+	m_height = height;
+
+	// 初始化世界矩阵
+	m_world = XMMatrixIdentity();	// 单位矩阵
+
+	// 初始化视矩阵
+	XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
+	XMVECTOR At = XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f);
+	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	m_view = XMMatrixLookAtLH(Eye, At, Up);
+
+	// 初始化投影矩阵
+	m_projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, width / (FLOAT)height, 0.01f, 100.0f);
+}
+
+bool ColorShader::UpdateConstantBuffer(ID3D11DeviceContext* deviceContext)
+{
+	static float t = 0.0f;
+	static DWORD dwTimeStart = 0;
+	DWORD dwTimeCur = GetTickCount();
+	if (dwTimeStart == 0)
+		dwTimeStart = dwTimeCur;
+	t = (dwTimeCur - dwTimeStart) / 1000.0f;
+	m_world = XMMatrixRotationY(t);		// 绕Y轴旋转
+
+	// 转置。显存默认以列为主序
+	ConstantBuffer cb;
+	cb.world = XMMatrixTranspose(m_world);
+	cb.view = XMMatrixTranspose(m_view);
+	cb.projection = XMMatrixTranspose(m_projection);
+
+	deviceContext->UpdateSubresource(m_constantBuffer, 0, NULL, &cb, 0, 0);	
+
+	return true;
+}
+
 bool ColorShader::CreateVetexInfo(ID3D11Device* device)
 {
 	// 1. 顶点集合	
-	VertexType vertexs[] = {
-		//    顶点          |      颜色
-		{-0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-		{-0.25f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-		{0.25f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-		{0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-		{0.25f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-		{-0.25f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	VertexType vertexs[] =
+	{
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
+	};
+
+	VertexType vertexs2[] =
+	{
+		{ XMFLOAT3(-0.5f, 0.0f, 0.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-0.25f, -0.5f, 0.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(0.25f, -0.5f, 0.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(0.5f, 0.0f, 0.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(0.25f, 0.5f, 0.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-0.25f, 0.5f, 0.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
 	};
 
 	// 2. 顶点索引集合
 	unsigned int indices[] = {
+		3,1,0,
+		2,1,3,
+
+		0,5,4,
+		1,5,0,
+
+		3,4,7,
+		0,4,3,
+
+		1,6,5,
+		2,6,1,
+
+		2,7,6,
+		3,7,2,
+
+		6,4,5,
+		7,4,6,
+	};
+
+	unsigned int indices2[] = {
 		0, 2, 1,	// 顺时针转，形成三角形
 		0, 3, 2,
-		0, 4, 3, 
+		0, 4, 3,
 		0, 5, 4
 	};
 
@@ -331,6 +425,7 @@ void ColorShader::Render(ID3D11DeviceContext* deviceContext)
 {
 	// Render the triangle.
 	static int index = 0;
-	UpdateTransforMatrix(deviceContext, 45.0f + index++);
+	//UpdateTransforMatrix(deviceContext, 45.0f + index++);
+	UpdateConstantBuffer(deviceContext);
 	deviceContext->DrawIndexed(m_indicesCount, 0, 0);
 }

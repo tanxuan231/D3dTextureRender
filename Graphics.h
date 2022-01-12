@@ -22,6 +22,7 @@ public:
 
 	bool Render(int desktopId);
 
+	void OnResize(int width, int height);
 private:
 	void DeInitColorShader();
 	void DeInitDxgi();
@@ -30,7 +31,7 @@ private:
 	bool CreateRenderTargetView();
 	void SetViewports(int width, int height);
 	bool InitShader();
-
+	
 private:
 #ifdef  USE_TEXTURE
 	TextureShader* m_shader;
@@ -40,6 +41,7 @@ private:
 
 	DXGIDupMgr m_dxgiDupMgr;
 	NvEnc m_nvenc;
+	bool m_initOver = false;
 
 private:
 	IDXGISwapChain* m_swapChain;
