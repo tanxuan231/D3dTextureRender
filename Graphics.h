@@ -6,7 +6,7 @@
 #include "DxgiDuplicator.h"
 #include "Nvenc.h"
 
-//#define USE_TEXTURE
+#define USE_TEXTURE
 
 class Graphics 
 {

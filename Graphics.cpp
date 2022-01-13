@@ -1,6 +1,7 @@
 #include "Graphics.h"
 #include "Common.h"
 #include "log.h"
+#include <string>
 
 #pragma comment(lib, "d3d11.lib")
 
@@ -181,6 +182,9 @@ bool Graphics::CreateDeviceAndSwapChain(HWND hwnd, int width, int height)
 		DXGI_OUTPUT_DESC desc;
 		dxgiOutput->GetDesc(&desc);
 		// 输出信息
+		std::wstring ws(desc.DeviceName);
+		std::string str(ws.begin(), ws.end());
+		Log(LOG_INFO, "monitor[%d] name: %s", i, str.c_str());
 	}
 
 	return true;
@@ -246,7 +250,7 @@ void Graphics::EndScene()
 
 bool Graphics::Render(int desktopId)
 {
-	m_deviceContext->OMSetRenderTargets(1u, &m_renderTargetView, nullptr);
+	m_deviceContext->OMSetRenderTargets(1u, &m_renderTargetView, nullptr);	// 第三个参数是深度缓存视图
 
 #ifdef  USE_TEXTURE
 	bool result;
