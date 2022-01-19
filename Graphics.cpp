@@ -208,6 +208,8 @@ bool Graphics::CreateRenderTargetView()
 		return false;
 	}
 
+	m_deviceContext->OMSetRenderTargets(1u, &m_renderTargetView, nullptr);	// 第三个参数是深度缓存视图
+
 	return true;
 }
 
@@ -249,9 +251,7 @@ void Graphics::EndScene()
 }
 
 bool Graphics::Render(int desktopId)
-{
-	m_deviceContext->OMSetRenderTargets(1u, &m_renderTargetView, nullptr);	// 第三个参数是深度缓存视图
-
+{	
 #ifdef  USE_TEXTURE
 	bool result;
 	ID3D11Texture2D* desktop = m_dxgiDupMgr.GetFrame(desktopId, m_device, m_deviceContext, result);
@@ -281,5 +281,22 @@ void Graphics::OnResize(int width, int height)
 #ifndef  USE_TEXTURE
 	m_shader->CreateMatrix(width, height);
 #endif
+	ResizeSwapChain(width, height);
+}
+
+bool Graphics::ResizeSwapChain(int width, int height)
+{
+	// Resize swapchain
+	DXGI_SWAP_CHAIN_DESC SwapChainDesc;
+	m_swapChain->GetDesc(&SwapChainDesc);
+	HRESULT hr = m_swapChain->ResizeBuffers(SwapChainDesc.BufferCount, 
+		width, height, SwapChainDesc.BufferDesc.Format, SwapChainDesc.Flags);
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	JUDGER(CreateRenderTargetView());
 	SetViewports(width, height);
+
+	return true;
 }

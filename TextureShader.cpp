@@ -224,7 +224,8 @@ bool TextureShader::CreateSamplerState(ID3D11Device* device)
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	HRESULT hr = device->CreateSamplerState(&samplerDesc, &m_sampleState);
+	D3D11_SAMPLER_DESC desc = CD3D11_SAMPLER_DESC(CD3D11_DEFAULT());
+	HRESULT hr = device->CreateSamplerState(&desc, &m_sampleState);
 	if (FAILED(hr)) {
 		return false;
 	}

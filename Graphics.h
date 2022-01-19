@@ -32,6 +32,8 @@ private:
 	void SetViewports(int width, int height);
 	bool InitShader();
 	
+	bool ResizeSwapChain(int width, int height);
+
 private:
 #ifdef  USE_TEXTURE
 	TextureShader* m_shader;
