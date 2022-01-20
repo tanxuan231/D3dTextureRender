@@ -21,7 +21,7 @@ void TextureHelp::SaveTex2File(ID3D11Device* device, ID3D11DeviceContext* device
         1u,
         0u,
         D3D11_USAGE_STAGING,
-        D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE
+        D3D11_CPU_ACCESS_READ
     );
 
     HRESULT hr = device->CreateTexture2D(&newDesc, nullptr, &newTexture);
