@@ -12,7 +12,6 @@ public:
 
     bool Init(ID3D11Device* device, IDXGIAdapter* dxgiAdapter);
 
-    void EnableSave2File() { m_save2file = true; }
     void EnableCursorCap() { m_cursorCap = true; }
 
     UINT GetImageHeight(int idx) {
@@ -38,13 +37,10 @@ public:
 private:
     bool InitOutput(int monitorIdx, ID3D11Device* device, IDXGIAdapter* dxgiAdapter);    
     bool CreateTexture(ID3D11Device* device, UINT width, UINT height, DXGI_FORMAT format);    
-    void SaveTex2File(int idx, ID3D11DeviceContext* deviceContext, 
-        ID3D11Texture2D* texture, UINT width, UINT height, bool force = false);
     bool DrawCursor();
     bool Cursor2Texture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
 private:
-    bool m_save2file;
     bool m_cursorCap;
 
 private:

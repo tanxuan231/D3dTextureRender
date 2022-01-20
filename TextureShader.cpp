@@ -85,19 +85,13 @@ void TextureShader::DestoryTextureInfo()
 	}
 }
 
-void TextureShader::SetTextureDataFile(const char* fileName)
-{	
-	m_fileName.assign(fileName);	
-}
-
 bool TextureShader::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 	const WCHAR* vsFilename, const WCHAR* psFilename)
 {
 	JUDGER(CompileShader(vsFilename, psFilename));
 	JUDGER(CreateShader(device));
 	JUDGER(CreateInputLayout(device));
-	JUDGER(CreateSamplerState(device));
-	//JUDGER(CreateTextureFromFile(device, deviceContext));
+	JUDGER(CreateSamplerState(device));	
 
 	JUDGER(CreateVetexInfo(device));
 	SetInfo(deviceContext);
@@ -302,116 +296,6 @@ bool TextureShader::CreateVetexInfo(ID3D11Device* device)
 	return true;
 }
 
-bool TextureShader::CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
-{
-	int height, width;
-	if (!LoadTarga((char*)m_fileName.c_str(), height, width)) {
-		return false;
-	}
-
-	D3D11_TEXTURE2D_DESC textureDesc;
-
-	textureDesc.Height = height;
-	textureDesc.Width = width;
-	textureDesc.MipLevels = 0;
-	textureDesc.ArraySize = 1;
-	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	textureDesc.SampleDesc.Count = 1;
-	textureDesc.SampleDesc.Quality = 0;
-	textureDesc.Usage = D3D11_USAGE_DEFAULT;
-	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-	textureDesc.CPUAccessFlags = 0;
-	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
-
-	// 1. 创建一个空的纹理
-	HRESULT hr = device->CreateTexture2D(&textureDesc, NULL, &m_texture);
-	if (FAILED(hr)) {
-		return false;
-	}
-	
-	unsigned int rowPitch = (width * 4) * sizeof(unsigned char);
-
-	// 2. 拷贝图像数据到纹理（加载一次即可使用UpdateSubresource）
-	deviceContext->UpdateSubresource(m_texture, 0, NULL, GetTargaData(), rowPitch, 0);
-	
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	srvDesc.Format = textureDesc.Format;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = -1;	// Mipmap级别
-
-	// 3. 为纹理创建着色器资源视图
-	hr = device->CreateShaderResourceView(m_texture, &srvDesc, &m_textureView);
-	if (FAILED(hr)) {
-		return false;
-	}
-
-	// 4. 为纹理资源视图创建Mipmap层级
-	deviceContext->GenerateMips(m_textureView);
-
-	ClearTargaData();
-
-	return true;
-}
-
-bool TextureShader::UpdateTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* desktopTex)
-{
-	if (!desktopTex) {
-		return true;
-	}
-
-	D3D11_TEXTURE2D_DESC desc;
-	desktopTex->GetDesc(&desc);
-
-	// 1. 创建一个空的纹理
-	D3D11_TEXTURE2D_DESC textureDesc;
-	textureDesc.Height = desc.Height;
-	textureDesc.Width = desc.Width;
-	textureDesc.Format = desc.Format;
-	textureDesc.MipLevels = 0;
-	textureDesc.ArraySize = 1;	
-	textureDesc.SampleDesc.Count = 1;
-	textureDesc.SampleDesc.Quality = 0;
-	textureDesc.Usage = D3D11_USAGE_DEFAULT;
-	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-	textureDesc.CPUAccessFlags = 0;
-	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;	
-	HRESULT hr = device->CreateTexture2D(&textureDesc, NULL, &m_texture);
-	if (FAILED(hr)) {
-		return false;
-	}
-
-	// 2. 拷贝图像数据到纹理（加载一次即可使用UpdateSubresource）
-#if 1
-	D3D11_MAPPED_SUBRESOURCE resource;
-	UINT subresource = D3D11CalcSubresource(0, 0, 0);
-	deviceContext->Map(desktopTex, subresource, D3D11_MAP_READ, 0, &resource);
-	deviceContext->UpdateSubresource(m_texture, 0, NULL, resource.pData, resource.RowPitch, 0);
-	deviceContext->Unmap(desktopTex, subresource);
-#else
-	deviceContext->CopyResource(m_texture, desktopTex);
-#endif
-
-	// 3. 为纹理创建着色器资源视图(注意：纹理BindFlags需要设置为D3D11_BIND_SHADER_RESOURCE)
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	srvDesc.Format = desc.Format;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = -1;	// Mipmap级别
-	hr = device->CreateShaderResourceView(m_texture, &srvDesc, &m_textureView);
-	m_texture->Release();
-	if (FAILED(hr)) {
-		return false;
-	}
-
-	// 4. 为纹理资源视图创建Mipmap层级
-	deviceContext->GenerateMips(m_textureView);
-	
-	// 绑定纹理资源视图到像素着色器
-	deviceContext->PSSetShaderResources(0, 1, &m_textureView);
-	return true;
-}
-
 bool TextureShader::SetInputAssemblerInfo(ID3D11DeviceContext* deviceContext)
 {
 	unsigned int stride;
@@ -464,6 +348,67 @@ bool TextureShader::Render(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	}
 	
 	deviceContext->DrawIndexed(m_indicesCount, 0, 0);
+
+	return true;
+}
+
+bool TextureShader::UpdateTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* desktopTex)
+{
+	if (!desktopTex) {
+		return true;
+	}
+
+	HRESULT hr;
+	D3D11_TEXTURE2D_DESC desktopDesc;
+	desktopTex->GetDesc(&desktopDesc);
+
+	D3D11_TEXTURE2D_DESC desc;
+	if (m_texture) {
+		m_texture->GetDesc(&desc);
+	}
+	if (!m_texture || desc.Format != desktopDesc.Format ||
+		desc.Height != desktopDesc.Height ||
+		desc.Width != desktopDesc.Width) {
+		if (m_texture) {
+			m_texture->Release();
+		}
+
+		D3D11_TEXTURE2D_DESC textureDesc;
+		textureDesc.Height = desktopDesc.Height;
+		textureDesc.Width = desktopDesc.Width;
+		textureDesc.Format = desktopDesc.Format;
+		textureDesc.MipLevels = 1;	// 不产生mip level
+		textureDesc.ArraySize = 1;
+		textureDesc.SampleDesc.Count = 1;
+		textureDesc.SampleDesc.Quality = 0;
+		textureDesc.Usage = D3D11_USAGE_DEFAULT;
+		textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+		textureDesc.CPUAccessFlags = 0;
+		textureDesc.MiscFlags = 0;
+		hr = device->CreateTexture2D(&textureDesc, NULL, &m_texture);
+		if (FAILED(hr)) {
+			return false;
+		}
+
+		if (m_textureView) {
+			m_textureView->Release();
+		}			
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		srvDesc.Format = desktopDesc.Format;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = 1;	// Mipmap级别
+
+		hr = device->CreateShaderResourceView(m_texture, &srvDesc, &m_textureView);		
+		if (FAILED(hr)) {
+			return false;
+		}
+
+		deviceContext->PSSetShaderResources(0, 1, &m_textureView);
+	}
+	
+	deviceContext->CopyResource(m_texture, desktopTex);
 
 	return true;
 }

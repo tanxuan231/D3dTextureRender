@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <d3d11.h>
 #include <string>
+#include "TextureHelp.h"
 
 class TextureShader : public ShaderHelp
 {
@@ -41,9 +42,6 @@ public:
 		const WCHAR* vsFilename, const WCHAR* psFilename);
 	bool Render(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* desktopTex);
 
-	void SetTextureDataFile(const char* fileName);
-	bool UpdateTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* desktopTex);
-
 private:
 	void DestoryVetexInfo();
 	void DestoryTextureInfo();
@@ -59,11 +57,11 @@ private:
 	
 	bool CreateSamplerState(ID3D11Device* device);
 	void SetTextureInfo(ID3D11DeviceContext* deviceContext);
-	bool CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 	
+	bool UpdateTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* desktopTex);
 private:
-	int m_indicesCount;
-	std::string m_fileName;
+	int m_indicesCount;	
+	TextureHelp m_texHelp;
 
 private:
 	ID3D10Blob* m_vertexShaderBuffer;
@@ -77,6 +75,6 @@ private:
 	ID3D11Buffer* m_indexBuffer;
 
 	ID3D11SamplerState* m_sampleState;
-	ID3D11Texture2D* m_texture;
-	ID3D11ShaderResourceView* m_textureView;
+	ID3D11Texture2D* m_texture = nullptr;
+	ID3D11ShaderResourceView* m_textureView = nullptr;
 };

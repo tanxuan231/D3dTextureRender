@@ -5,6 +5,7 @@
 #include "ColorShader.h"
 #include "DxgiDuplicator.h"
 #include "Nvenc.h"
+#include "TextureHelp.h"
 
 #define USE_TEXTURE
 
@@ -33,6 +34,7 @@ private:
 	bool InitShader();
 	
 	bool ResizeSwapChain(int width, int height);
+	void SaveTex2File(int idx, ID3D11Texture2D* texture);
 
 private:
 #ifdef  USE_TEXTURE

@@ -68,7 +68,6 @@ bool Graphics::Init(HWND hwnd, int width, int height)
 
 	// DXGI抓图初始化
 	m_dxgiDupMgr.EnableCursorCap();
-	//m_dxgiDupMgr.EnableSave2File();
 	JUDGER(m_dxgiDupMgr.Init(m_device, m_dxgiAdapter));
 
 	// 编码开关
@@ -96,8 +95,7 @@ void Graphics::DeInitColorShader()
 bool Graphics::InitShader()
 {
 #ifdef  USE_TEXTURE
-	m_shader = new TextureShader();
-	m_shader->SetTextureDataFile("data/stone.tga");
+	m_shader = new TextureShader();	
 	return m_shader->Init(m_device, m_deviceContext, L"shader/Texture.vs", L"shader/Texture.ps");
 #else
 	m_shader = new ColorShader();
@@ -261,6 +259,9 @@ bool Graphics::Render(int desktopId)
 		return true;
 	}
 
+	// 存入文件
+	//SaveTex2File(desktopId, desktop);
+
 	// 编码
 	m_nvenc.EncodeFrame(desktop);
 
@@ -299,4 +300,14 @@ bool Graphics::ResizeSwapChain(int width, int height)
 	SetViewports(width, height);
 
 	return true;
+}
+
+void Graphics::SaveTex2File(int idx, ID3D11Texture2D* texture)
+{
+	static int index = 0;
+	char fileName[MAX_PATH] = { 0 };
+	CreateDirectory(L"out/bmp", NULL);
+	sprintf_s(fileName, "out/bmp/%d_%d_1.bmp", idx, index++);
+
+	TextureHelp::SaveTex2File(m_device, m_deviceContext, texture, fileName);
 }

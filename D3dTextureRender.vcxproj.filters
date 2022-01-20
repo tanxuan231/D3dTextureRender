@@ -63,6 +63,9 @@
     <ClInclude Include="cursorHelp.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="TextureHelp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="D3dTextureRender.cpp">
@@ -96,6 +99,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="cursorHelp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureHelp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
