@@ -225,7 +225,13 @@ bool ColorShader::CreateInputLayout(ID3D11Device* device)
 	// 创建顶点数据布局
 	const D3D11_INPUT_ELEMENT_DESC inputElementDescs[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{	"POSITION", 
+			0, 
+			DXGI_FORMAT_R32G32B32_FLOAT, 
+			0,	// 可以取值 0 - 15, 0 表示绑定顶点缓存到第一个输入槽
+			0,	// 定义了缓存的对齐方式
+			D3D11_INPUT_PER_VERTEX_DATA,	// 定义输入数据类型为顶点数据
+			0 },
 		{ "COLOR", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12u, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		// 如果用unsigned char定义颜色，比如r = 255，可以使用如下的格式，而不是DXGI_FORMAT_R8G8B8A8_UINT
 		// 因为着色器需要接收浮点型，UNORM可以归一化数据
@@ -235,8 +241,8 @@ bool ColorShader::CreateInputLayout(ID3D11Device* device)
 	HRESULT hr = device->CreateInputLayout(
 		inputElementDescs, 
 		sizeof(inputElementDescs)/sizeof(D3D11_INPUT_ELEMENT_DESC),
-		m_vertexShaderBuffer->GetBufferPointer(),
-		m_vertexShaderBuffer->GetBufferSize(), 
+		m_vertexShaderBuffer->GetBufferPointer(),	// 指向顶点着色器起始位置的指针
+		m_vertexShaderBuffer->GetBufferSize(),		// 指向顶点着色器的所在内存大小
 		&m_inputLayout);
 	if (FAILED(hr)) {
 		return false;
@@ -398,7 +404,13 @@ bool ColorShader::SetInputAssemblerInfo(ID3D11DeviceContext* deviceContext)
 	offset = 0;
 
 	// 绑定顶点缓存到渲染管线的输入装配阶段（input assembler）
-	deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+	deviceContext->IASetVertexBuffers(
+		0,					// 绑定到第一个输入槽
+		1,					// 顶点缓存的个数
+		&m_vertexBuffer,	// 创建好的顶点缓存
+		&stride,			// 跨度, 即顶点结构的大小
+		&offset				// 缓存第一个元素到所用元素的偏移量
+	);
 
 	// 绑定索引缓存到渲染管线的输入装配阶段（input assembler）
 	deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);

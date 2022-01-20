@@ -106,7 +106,6 @@ bool Graphics::InitShader()
 bool Graphics::CreateDeviceAndSwapChain(HWND hwnd, int width, int height)
 {
 	// 1. 创建交换链、设备和设备上下文
-
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;	
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
 
@@ -217,12 +216,14 @@ void Graphics::SetViewports(int width, int height)
 	D3D11_VIEWPORT viewport;
 	viewport.Width = (float)width;
 	viewport.Height = (float)height;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
+	viewport.MinDepth = 0.0f;	// 深度值的下限, 由于深度值是 [0, 1] 所以下限值是 0
+	viewport.MaxDepth = 1.0f;	// 深度值的上限, 上限值是 1
 	viewport.TopLeftX = 0.0f;
 	viewport.TopLeftY = 0.0f;
 
-	m_deviceContext->RSSetViewports(1, &viewport);
+	m_deviceContext->RSSetViewports(
+		1,	// 视口的个数
+		&viewport);
 }
 
 void Graphics::BeginScene(float red, float green, float blue, float alpha)
@@ -260,7 +261,7 @@ bool Graphics::Render(int desktopId)
 	}
 
 	// 存入文件
-	//SaveTex2File(desktopId, desktop);
+	SaveTex2File(desktopId, desktop);
 
 	// 编码
 	m_nvenc.EncodeFrame(desktop);
@@ -304,10 +305,11 @@ bool Graphics::ResizeSwapChain(int width, int height)
 
 void Graphics::SaveTex2File(int idx, ID3D11Texture2D* texture)
 {
+	/*
 	static int index = 0;
 	char fileName[MAX_PATH] = { 0 };
 	CreateDirectory(L"out/bmp", NULL);
 	sprintf_s(fileName, "out/bmp/%d_%d_1.bmp", idx, index++);
-
-	TextureHelp::SaveTex2File(m_device, m_deviceContext, texture, fileName);
+	*/
+	//TextureHelp::SaveTex2File(m_device, m_deviceContext, texture);
 }

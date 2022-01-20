@@ -6,7 +6,14 @@
 void TextureHelp::SaveTex2File(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture, std::string fileName)
 {
     if (fileName.empty()) {
-        return;
+		static int index = 0;
+		char fileName1[MAX_PATH] = { 0 };
+		CreateDirectory(L"out/bmp", NULL);
+		sprintf_s(fileName1, "out/bmp/%d.bmp", index++);
+		if (index == 9) {
+			index = 0;
+		}
+		fileName.assign(fileName1);
     }
 
     D3D11_TEXTURE2D_DESC desc;
