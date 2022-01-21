@@ -150,8 +150,14 @@ bool Graphics::CreateDeviceAndSwapChain(HWND hwnd, int width, int height)
 	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
 
 	// 1.创建交换链、设备及上下文
-	HRESULT hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featureLevel, 1,
-		D3D11_SDK_VERSION, &swapChainDesc, &m_swapChain, &m_device, NULL, &m_deviceContext);
+	HRESULT hr = D3D11CreateDeviceAndSwapChain(NULL, 
+		D3D_DRIVER_TYPE_HARDWARE, 
+		NULL, 
+		D3D11_CREATE_DEVICE_DEBUG, 
+		&featureLevel, 
+		1,
+		D3D11_SDK_VERSION, 
+		&swapChainDesc, &m_swapChain, &m_device, NULL, &m_deviceContext);
 	if (FAILED(hr)) {
 		return false;
 	}
@@ -251,6 +257,9 @@ void Graphics::EndScene()
 
 bool Graphics::Render(int desktopId)
 {	
+	if (m_closeRender)
+		return true;
+
 #ifdef  USE_TEXTURE
 	bool result;
 	ID3D11Texture2D* desktop = m_dxgiDupMgr.GetFrame(desktopId, m_device, m_deviceContext, result);
@@ -312,4 +321,33 @@ void Graphics::SaveTex2File(int idx, ID3D11Texture2D* texture)
 	sprintf_s(fileName, "out/bmp/%d_%d_1.bmp", idx, index++);
 	*/
 	//TextureHelp::SaveTex2File(m_device, m_deviceContext, texture);
+}
+
+void Graphics::SharedTexture()
+{
+	if (!m_initOver) {
+		return;
+	}
+
+	bool ret;
+	TextureShared texShared;
+	D3D11_TEXTURE2D_DESC desc;
+	ID3D11Texture2D* dstTex;
+	ret = texShared.OpenTexture(m_device, &dstTex);
+
+	if (!ret) {
+		ID3D11Texture2D* texture = nullptr;
+		if (!texShared.CreateTexture(m_device, m_deviceContext, &texture, "data/stone.tga")) {
+			return;
+		}
+
+		ret = texShared.CreateTexture(m_device, m_deviceContext, texture, &dstTex);
+		dstTex->GetDesc(&desc);
+		Log(LOG_INFO, "create shared texture, width: %d, height: %d", desc.Width, desc.Height);
+	} else {
+		dstTex->GetDesc(&desc);
+		Log(LOG_INFO, "open shared texture, width: %d, height: %d", desc.Width, desc.Height);
+	}
+
+	m_closeRender = true;
 }

@@ -62,10 +62,15 @@ void TextureHelp::SaveTex2File(ID3D11Device* device, ID3D11DeviceContext* device
     return;
 }
 
-bool TextureHelp::CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture, std::string fileName)
+bool TextureHelp::CreateTextureFromFile(ID3D11Device* device, 
+	ID3D11DeviceContext* deviceContext, ID3D11Texture2D** texture, std::string fileName)
 {
 	int height, width;
-	if (!LoadTarga((char*)fileName.c_str(), height, width)) {
+	unsigned char* data = nullptr;
+	if (!LoadTarga((char*)fileName.c_str(), height, width, &data)) {
+		return false;
+	}
+	if (!data || width <= 0 || height <= 0) {
 		return false;
 	}
 
@@ -73,7 +78,7 @@ bool TextureHelp::CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContex
 
 	textureDesc.Height = height;
 	textureDesc.Width = width;
-	textureDesc.MipLevels = 0;
+	textureDesc.MipLevels = 0;	// 完整mip level层级
 	textureDesc.ArraySize = 1;
 	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	textureDesc.SampleDesc.Count = 1;
@@ -84,29 +89,21 @@ bool TextureHelp::CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContex
 	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
 	// 1. 创建一个空的纹理
-	HRESULT hr = device->CreateTexture2D(&textureDesc, NULL, &texture);
+	HRESULT hr = device->CreateTexture2D(&textureDesc, NULL, texture);
 	if (FAILED(hr)) {
 		return false;
 	}
 	unsigned int rowPitch = (width * 4) * sizeof(unsigned char);
 
 	// 2. 拷贝图像数据到纹理（加载一次即可使用UpdateSubresource）
-	deviceContext->UpdateSubresource(texture, 0, NULL, GetTargaData(), rowPitch, 0);
+	deviceContext->UpdateSubresource(*texture, 0, NULL, data, rowPitch, 0);
 
-	ClearTargaData();
+	delete[] data;
 
 	return true;
 }
 
-void TextureHelp::ClearTargaData()
-{
-	if (m_targaData) {
-		delete m_targaData;
-		m_targaData = nullptr;
-	}
-}
-
-bool TextureHelp::LoadTarga(char* filename, int& height, int& width)
+bool TextureHelp::LoadTarga(char* filename, int& height, int& width, unsigned char** data)
 {
 	int error, bpp, imageSize, index, i, j, k;
 	FILE* filePtr;
@@ -165,8 +162,8 @@ bool TextureHelp::LoadTarga(char* filename, int& height, int& width)
 	}
 
 	// Allocate memory for the targa destination data.
-	m_targaData = new unsigned char[imageSize];
-	if (!m_targaData)
+	*data = new unsigned char[imageSize];
+	if (!(*data))
 	{
 		return false;
 	}
@@ -182,10 +179,10 @@ bool TextureHelp::LoadTarga(char* filename, int& height, int& width)
 	{
 		for (i = 0; i < width; i++)
 		{
-			m_targaData[index + 0] = targaImage[k + 2];  // Red.
-			m_targaData[index + 1] = targaImage[k + 1];  // Green.
-			m_targaData[index + 2] = targaImage[k + 0];  // Blue
-			m_targaData[index + 3] = targaImage[k + 3];  // Alpha
+			(*data)[index + 0] = targaImage[k + 2];  // Red.
+			(*data)[index + 1] = targaImage[k + 1];  // Green.
+			(*data)[index + 2] = targaImage[k + 0];  // Blue
+			(*data)[index + 3] = targaImage[k + 3];  // Alpha
 
 			// Increment the indexes into the targa data.
 			k += 4;

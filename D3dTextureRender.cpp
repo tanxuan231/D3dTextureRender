@@ -47,12 +47,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_D3DTEXTURERENDER));
 
-    Graphics* graphics = new Graphics();
-
+    Graphics* graphics = new Graphics();    
     if (!graphics->Init(g_hWnd, 800, 600)) {
         Log(LOG_ERROR, "get desktop frame failed");        
         return FALSE;
     }
+
+    // 纹理共享
+    graphics->SharedTexture();
 
     MSG msg;
     bool done = false;

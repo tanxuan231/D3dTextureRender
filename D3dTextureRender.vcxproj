@@ -157,6 +157,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TextureHelp.h" />
     <ClInclude Include="TextureShader.h" />
+    <ClInclude Include="TextureShared.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ColorShader.cpp" />
@@ -171,6 +172,7 @@
     <ClCompile Include="ShaderHelp.cpp" />
     <ClCompile Include="TextureHelp.cpp" />
     <ClCompile Include="TextureShader.cpp" />
+    <ClCompile Include="TextureShared.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="D3dTextureRender.rc" />

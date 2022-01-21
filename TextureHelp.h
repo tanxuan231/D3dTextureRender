@@ -15,13 +15,8 @@ class TextureHelp
 public:
 	static void SaveTex2File(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture, std::string fileName = "");
 
-	bool CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture, std::string fileName);
+	static bool CreateTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11Texture2D** texture, std::string fileName);
 
 private:
-	void ClearTargaData();
-	bool LoadTarga(char* filename, int& height, int& width);
-	unsigned char* GetTargaData() { return m_targaData; }
-
-private:
-	unsigned char* m_targaData = nullptr;
+	static bool LoadTarga(char* filename, int& height, int& width, unsigned char** data);
 };
