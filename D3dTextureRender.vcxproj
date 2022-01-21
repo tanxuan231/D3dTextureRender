@@ -145,6 +145,8 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="cursorHelp.h" />
     <ClInclude Include="D3dTextureRender.h" />
+    <ClInclude Include="DirectXTex\DDSTextureLoader\DDSTextureLoader11.h" />
+    <ClInclude Include="DirectXTex\ScreenGrab\ScreenGrab11.h" />
     <ClInclude Include="DxgiDuplicator.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="framework.h" />
@@ -164,6 +166,8 @@
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="cursorHelp.cpp" />
     <ClCompile Include="D3dTextureRender.cpp" />
+    <ClCompile Include="DirectXTex\DDSTextureLoader\DDSTextureLoader11.cpp" />
+    <ClCompile Include="DirectXTex\ScreenGrab\ScreenGrab11.cpp" />
     <ClCompile Include="DxgiDuplicator.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="Graphics.cpp" />

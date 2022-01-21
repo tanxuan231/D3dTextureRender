@@ -6,11 +6,10 @@ class TextureShared
 {
 public:
 	bool CreateTexture(ID3D11Device* device,
-		ID3D11DeviceContext* deviceContext, ID3D11Texture2D** texture, std::string fileName);
-
-	bool CreateTexture(ID3D11Device* device,
 		ID3D11DeviceContext* deviceContext,
-		ID3D11Texture2D* srcTex, ID3D11Texture2D** dstTex);
+		ID3D11Texture2D** dstTex);
 
 	bool OpenTexture(ID3D11Device* device, ID3D11Texture2D** texture);
+
+	bool SaveTexture(ID3D11DeviceContext* deviceContext, ID3D11Texture2D* texture);
 };

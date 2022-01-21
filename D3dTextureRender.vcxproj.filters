@@ -69,6 +69,12 @@
     <ClInclude Include="TextureShared.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="DirectXTex\ScreenGrab\ScreenGrab11.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectXTex\DDSTextureLoader\DDSTextureLoader11.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="D3dTextureRender.cpp">
@@ -108,6 +114,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="TextureShared.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectXTex\ScreenGrab\ScreenGrab11.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectXTex\DDSTextureLoader\DDSTextureLoader11.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

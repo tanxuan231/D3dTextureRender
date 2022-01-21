@@ -1,21 +1,16 @@
-﻿// D3dTextureRender.cpp : 定义应用程序的入口点。
-//
-
-#include "framework.h"
+﻿#include "framework.h"
 #include "D3dTextureRender.h"
 #include "Graphics.h"
 #include "log.h"
 
 #define MAX_LOADSTRING 100
 
-// 全局变量:
 HINSTANCE hInst;                                // 当前实例
 WCHAR szTitle[MAX_LOADSTRING];                  // 标题栏文本
 WCHAR szWindowClass[MAX_LOADSTRING];            // 主窗口类名
 HWND g_hWnd;
 Graphics* g_graphics;
 
-// 此代码模块中包含的函数的前向声明:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -29,14 +24,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
-
-    // 初始化全局字符串
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_D3DTEXTURERENDER, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
     InitSpdLog("out/log/log.txt", BLOG_ALL, BLOG_LEVEL_TRACE);
-
     Log(LOG_INFO, "================= WinMain start ==================");
 
     // 执行应用程序初始化:
@@ -54,7 +46,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
 
     // 纹理共享
-    graphics->SharedTexture();
+    //graphics->SharedTexture();
 
     MSG msg;
     bool done = false;
@@ -97,21 +89,9 @@ bool RenderFrame(Graphics* graphics, int desktopId)
     }
     graphics->EndScene();
 
-    /*
-    static long index = 0;
-    wchar_t buffer[256] = {0};
-    wsprintfW(buffer, L"index: %d", index++);
-    SetWindowText(g_hWnd, buffer);
-    */
-
     return true;
 }
 
-//
-//  函数: MyRegisterClass()
-//
-//  目标: 注册窗口类。
-//
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
     WNDCLASSEXW wcex;
@@ -133,16 +113,6 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     return RegisterClassExW(&wcex);
 }
 
-//
-//   函数: InitInstance(HINSTANCE, int)
-//
-//   目标: 保存实例句柄并创建主窗口
-//
-//   注释:
-//
-//        在此函数中，我们在全局变量中保存实例句柄并
-//        创建和显示主程序窗口。
-//
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // 将实例句柄存储在全局变量中
@@ -162,16 +132,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
-//
-//  函数: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  目标: 处理主窗口的消息。
-//
-//  WM_COMMAND  - 处理应用程序菜单
-//  WM_PAINT    - 绘制主窗口
-//  WM_DESTROY  - 发送退出消息并返回
-//
-//
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)

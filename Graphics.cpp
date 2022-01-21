@@ -336,17 +336,19 @@ void Graphics::SharedTexture()
 	ret = texShared.OpenTexture(m_device, &dstTex);
 
 	if (!ret) {
-		ID3D11Texture2D* texture = nullptr;
-		if (!texShared.CreateTexture(m_device, m_deviceContext, &texture, "data/stone.tga")) {
+		if (!texShared.CreateTexture(m_device, m_deviceContext, &dstTex)) {
 			return;
 		}
 
-		ret = texShared.CreateTexture(m_device, m_deviceContext, texture, &dstTex);
+		texShared.SaveTexture(m_deviceContext, dstTex);
+
 		dstTex->GetDesc(&desc);
 		Log(LOG_INFO, "create shared texture, width: %d, height: %d", desc.Width, desc.Height);
 	} else {
 		dstTex->GetDesc(&desc);
 		Log(LOG_INFO, "open shared texture, width: %d, height: %d", desc.Width, desc.Height);
+
+		texShared.SaveTexture(m_deviceContext, dstTex);
 	}
 
 	m_closeRender = true;
